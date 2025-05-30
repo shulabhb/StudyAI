@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: studyai-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: study-ai-app-63ae0-firebase-adminsdk-fbsvc-48c47caa43.json

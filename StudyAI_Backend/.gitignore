@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+*.env
+
+# Firebase credentials
+*.json
+
+# Mac system files
+.DS_Store
