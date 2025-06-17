@@ -5,7 +5,7 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct RecordView: View {
-    @EnvironmentObject var appState: AppState            // ① grab the AppState
+    @EnvironmentObject var appState: AppState
     @Environment(\.presentationMode) var presentationMode
 
     @State private var isRecording = false
@@ -17,40 +17,38 @@ struct RecordView: View {
     @State private var duration: TimeInterval = 0
     @State private var request: SFSpeechAudioBufferRecognitionRequest?
     @State private var glowIntensity: Double = 0.4
+    @State private var audioLevel: CGFloat = 0.4
 
     @State private var showSaveOptions = false
     @State private var showTitlePrompt = false
     @State private var noteTitle = ""
-    @State private var summaryType = "medium"           // ② default to “medium”
 
-    private let summaryOptions = ["short", "medium", "detailed", "academic"]
-  
+    // Error alert state
+    @State private var errorMessage: String? = nil
+    @State private var showErrorAlert = false
+
+    @State private var isSummarizing = false
 
     private let audioEngine = AVAudioEngine()
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
+            AppColors.background.ignoresSafeArea()
             VStack(spacing: 16) {
                 Text("🎙 Voice Note")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-
-                // ─── ③ PICKER ──────────────────────────────────────────────────────
-                Picker("Summary Type", selection: $summaryType) {
-                    ForEach(summaryOptions, id: \.self) {
-                        Text($0.capitalized)
-                    }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
+                    .foregroundColor(.white)
 
                 ScrollView {
                     Text(transcript)
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.secondarySystemBackground))
+                        .background(AppColors.background)
+                        .foregroundColor(.white)
                         .cornerRadius(12)
+                        .scrollContentBackground(.hidden)
                 }
 
                 Spacer()
@@ -59,7 +57,7 @@ struct RecordView: View {
                     VStack(spacing: 10) {
                         Text("Recording: \(formatTime(duration))")
                             .font(.subheadline)
-                            .foregroundColor(.red)
+                            .foregroundColor(.white)
 
                         Button(action: {
                             isPaused ? resumeRecording() : pauseRecording()
@@ -78,21 +76,32 @@ struct RecordView: View {
             }
             .padding()
 
-            Button(action: {
-                provideHapticFeedback()
-                isRecording ? stopRecording() : startRecording()
-            }) {
-                Image(systemName: isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                    .resizable()
-                    .frame(width: 90, height: 90)
-                    .foregroundColor(isPaused ? .gray : (isRecording ? .red : .blue))
-                    .shadow(color: (isPaused ? .gray : (isRecording ? Color.red : Color.blue))
-                                .opacity(glowIntensity),
-                            radius: 20)
-                    .scaleEffect(isRecording ? 1.2 : 1.0)
-                    .animation(.easeInOut(duration: 0.3), value: isRecording)
+            VStack {
+                Spacer()
+                Button(action: {
+                    provideHapticFeedback()
+                    isRecording ? stopRecording() : startRecording()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(isRecording ? Color.red : AppColors.card)
+                            .frame(width: 72, height: 72)
+                            .scaleEffect(isRecording ? audioLevel : 1.0)
+                            .shadow(color: isRecording ? Color.red.opacity(0.4) : Color.white.opacity(0.15), radius: isRecording ? 32 * audioLevel : 8, x: 0, y: 4)
+                            .overlay(
+                                Circle()
+                                    .stroke(isRecording ? Color.white : Color.white.opacity(0.5), lineWidth: 2)
+                            )
+                        Image(systemName: isRecording ? "stop.fill" : "mic.fill")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+                .padding(.bottom, 36)
             }
-            .padding(.bottom, 40)
+        }
+        .alert(isPresented: $showErrorAlert) {
+            Alert(title: Text("Error"), message: Text(errorMessage ?? "Unknown error"), dismissButton: .default(Text("OK")))
         }
         .onAppear { requestPermissions() }
         .alert("Save this note?", isPresented: $showSaveOptions) {
@@ -114,12 +123,12 @@ struct RecordView: View {
                     .padding(.horizontal)
 
                 Button("Save & Summarize") {
+                    isSummarizing = true
                     saveAndSummarizeNote()
-                    noteTitle = ""
-                    showTitlePrompt = false
                 }
                 .padding()
                 .buttonStyle(.borderedProminent)
+                .disabled(isSummarizing)
 
                 Button("Cancel", role: .cancel) {
                     showTitlePrompt = false
@@ -128,8 +137,31 @@ struct RecordView: View {
             .presentationDetents([.height(250)])
             .padding()
         }
+        .overlay(
+            Group {
+                if isSummarizing {
+                    ZStack {
+                        Color.black.opacity(0.3).ignoresSafeArea()
+                        ProgressView("Summarizing...")
+                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
+                            .foregroundColor(.white)
+                            .padding(32)
+                            .background(AppColors.card)
+                            .cornerRadius(16)
+                    }
+                }
+            }
+        )
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("Record Notes")
+                    .font(.custom("AvenirNext-UltraLight", size: 22))
+                    .foregroundColor(.white)
+            }
+        }
     }
-    
 
     private func requestPermissions() {
         SFSpeechRecognizer.requestAuthorization { authStatus in
@@ -198,6 +230,19 @@ struct RecordView: View {
             inputNode.removeTap(onBus: 0)
             inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
                 request.append(buffer)
+                let rms = buffer.floatChannelData?.pointee
+                let frameLength = Int(buffer.frameLength)
+                var sum: Float = 0
+                if let rms = rms {
+                    for i in 0..<frameLength { sum += rms[i] * rms[i] }
+                    let mean = sum / Float(frameLength)
+                    let level = CGFloat(min(max(sqrt(mean) * 10, 0.4), 1.5))
+                    DispatchQueue.main.async {
+                        withAnimation(.easeInOut(duration: 0.1)) {
+                            audioLevel = level
+                        }
+                    }
+                }
             }
 
             audioEngine.prepare()
@@ -232,6 +277,8 @@ struct RecordView: View {
         request?.endAudio()
         recognitionTask?.finish()
 
+        DispatchQueue.main.async { audioLevel = 0.4 }
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             showSaveOptions = true
         }
@@ -252,68 +299,28 @@ struct RecordView: View {
     }
 
     private func saveAndSummarizeNote() {
-           guard let userID = Auth.auth().currentUser?.uid else {
-               print("❌ No logged-in user."); return
-           }
-           guard let url = URL(string: "http://127.0.0.1:8000/summarize_raw") else {
-               print("❌ Invalid backend URL"); return
-           }
+        guard !noteTitle.isEmpty, !transcript.isEmpty else {
+            showErrorAlert(message: "Title or transcript is empty.")
+            isSummarizing = false
+            return
+        }
+        NoteService.createNoteViaBackend(name: noteTitle, content: transcript, summaryType: "summary", source: "voice") { result in
+            DispatchQueue.main.async {
+                isSummarizing = false
+                switch result {
+                case .success(let summaryId):
+                    appState.newSummaryId = summaryId
+                    appState.selectedTab = .summaries
+                    presentationMode.wrappedValue.dismiss()
+                case .failure(let error):
+                    showErrorAlert(message: error.localizedDescription)
+                }
+            }
+        }
+    }
 
-           var request = URLRequest(url: url)
-           request.httpMethod = "POST"
-           let boundary = UUID().uuidString
-           request.setValue("multipart/form-data; boundary=\(boundary)",
-                            forHTTPHeaderField: "Content-Type")
-
-           var body = Data()
-           let formFields: [(String, String)] = [
-               ("content", transcript),
-               ("user_id", userID),
-               ("title", noteTitle),
-               ("summary_type", summaryType)
-           ]
-           for (key, value) in formFields {
-               body.append("--\(boundary)\r\n")
-               body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
-               body.append("\(value)\r\n")
-           }
-           body.append("--\(boundary)--\r\n")
-           request.httpBody = body
-
-           URLSession.shared.dataTask(with: request) { data, _, error in
-               if let error = error {
-                   print("❌ Network error: \(error)"); return
-               }
-               guard let data = data,
-                     let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                     let summary = json["summary"] as? String else {
-                   print("❌ Failed to decode response"); return
-               }
-
-               let db = Firestore.firestore()
-               let noteData: [String: Any] = [
-                   "user_id": userID,
-                   "title": noteTitle,
-                   "content": transcript,
-                   "summary": summary,
-                   "source": "voice",
-                   "createdAt": Timestamp()
-               ]
-
-               db.collection("users")
-                 .document(userID)
-                 .collection("notes")
-                 .addDocument(data: noteData) { err in
-                   if let err = err {
-                       print("❌ Firestore error: \(err.localizedDescription)")
-                   } else {
-                       // ─── ④ AFTER SAVE: jump to Summaries tab ─────────────
-                       DispatchQueue.main.async {
-                           appState.selectedTab = .summaries
-                           presentationMode.wrappedValue.dismiss()
-                       }
-                   }
-               }
-           }.resume()
-       }
-   }
+    private func showErrorAlert(message: String) {
+        errorMessage = message
+        showErrorAlert = true
+    }
+}

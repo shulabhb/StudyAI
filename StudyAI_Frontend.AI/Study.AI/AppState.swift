@@ -13,8 +13,10 @@ enum AppTab: Hashable {
 
 class AppState: ObservableObject {
     @Published var isLoggedIn: Bool = false
-    @Published var username: String = "User"
+    @Published var username: String = ""
 
     /// Tracks which tab is currently selected
     @Published var selectedTab: AppTab = .home
+
+    @Published var newSummaryId: String? = nil
 }

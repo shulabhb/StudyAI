@@ -14,20 +14,39 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationView {
-            Form {
-                Section(header: Text("Account")) {
-                    NavigationLink("Profile", destination: ProfileView())
-                    Button("Log Out", role: .destructive) {
-                        logOut()
+            ZStack {
+                AppColors.background.ignoresSafeArea()
+                Form {
+                    Section(header: Text("Account")
+                        .font(.custom("AvenirNext-UltraLight", size: 18))
+                        .foregroundColor(AppColors.text.opacity(0.8))) {
+                        NavigationLink("Profile", destination: ProfileView())
+                            .foregroundColor(AppColors.text)
+                        Button("Log Out", role: .destructive) {
+                            logOut()
+                        }
                     }
+                    .listRowBackground(AppColors.card)
+                    Section(header: Text("Preferences")
+                        .font(.custom("AvenirNext-UltraLight", size: 18))
+                        .foregroundColor(AppColors.text.opacity(0.8))) {
+                        Text("Version 1.0.0")
+                            .foregroundColor(AppColors.text.opacity(0.7))
+                    }
+                    .listRowBackground(AppColors.card)
                 }
-
-                Section(header: Text("Preferences")) {
-                    Toggle("Dark Mode", isOn: .constant(false)) // Placeholder
-                    Text("Version 1.0.0")
-                }
+                .background(AppColors.background)
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Settings")
+                        .font(.custom("AvenirNext-UltraLight", size: 24))
+                        .foregroundColor(AppColors.text)
+                }
+            }
         }
     }
 

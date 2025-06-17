@@ -9,8 +9,11 @@ import SwiftUI
 
 struct FlashcardView: View {
     var body: some View {
-        Text("🃏 Flashcard View Coming Soon")
-            .font(.title2)
-            .padding()
+        ZStack {
+            AppColors.background.ignoresSafeArea()
+            Text("🃏 Flashcard View Coming Soon")
+                .font(.title2)
+                .padding()
+        }
     }
 }

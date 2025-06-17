@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct AppColors {
-    static let primary = Color.blue
-    static let secondary = Color.gray
-    static let background = Color(.systemGroupedBackground)
-    static let card = Color(.secondarySystemBackground)
+    static let primary = Color(red: 0.1, green: 0.15, blue: 0.25)
+    static let secondary = Color(red: 0.15, green: 0.2, blue: 0.3)
+    static let background = Color(red: 0.1, green: 0.15, blue: 0.25)
+    static let card = Color(red: 0.15, green: 0.2, blue: 0.3)
     static let accent = Color.mint
-    static let text = Color.primary
+    static let text = Color.white
 }

@@ -1,3 +1,11 @@
+//
+//  Note.swift
+//  Study.AI
+//
+//  Created by Shulabh Bhattarai on 6/11/25.
+//
+
+
 import Foundation
 import FirebaseCore
 

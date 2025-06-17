@@ -28,67 +28,93 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationView {
-            Form {
-                Section {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "person.circle.fill")
-                            .resizable()
-                            .frame(width: 80, height: 80)
-                            .foregroundColor(.blue)
-                            .padding(.vertical)
-                        Spacer()
-                    }
-                }
-
-                Section(header: Text("Personal Info")) {
-                    TextField("First Name", text: $firstName)
-                    TextField("Last Name", text: $lastName)
-                    TextField("Username", text: $username)
-                    TextField("Age", text: $age)
-                        .keyboardType(.numberPad)
-                    Picker("Country", selection: $country) {
-                        ForEach(countryList, id: \ .self) { c in
-                            Text(countryFlagEmoji(for: c) + " " + c).tag(c)
+            ZStack {
+                AppColors.background.ignoresSafeArea()
+                Form {
+                    Section {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "person.circle.fill")
+                                .resizable()
+                                .frame(width: 80, height: 80)
+                                .foregroundColor(.blue)
+                                .padding(.vertical)
+                            Spacer()
                         }
                     }
-                    DatePicker("Date of Birth", selection: $birthDate, displayedComponents: .date)
-                }
-
-                Section(header: Text("Account")) {
-                    Text(email).foregroundColor(.gray)
-                    Button("Reset Password") {
-                        resetPassword()
+                    .listRowBackground(AppColors.card)
+                    Section(header: Text("Personal Info")
+                        .font(.custom("AvenirNext-UltraLight", size: 18))
+                        .foregroundColor(AppColors.text.opacity(0.8))) {
+                        TextField("First Name", text: $firstName)
+                            .foregroundColor(AppColors.text)
+                        TextField("Last Name", text: $lastName)
+                            .foregroundColor(AppColors.text)
+                        TextField("Username", text: $username)
+                            .foregroundColor(AppColors.text)
+                        TextField("Age", text: $age)
+                            .keyboardType(.numberPad)
+                            .foregroundColor(AppColors.text)
+                        Picker("Country", selection: $country) {
+                            ForEach(countryList, id: \.self) { c in
+                                Text(countryFlagEmoji(for: c) + " " + c).tag(c)
+                            }
+                        }
+                        DatePicker("Date of Birth", selection: $birthDate, displayedComponents: .date)
                     }
-                }
-
-                Section(header: Text("Change Password")) {
-                    SecureField("Current Password", text: $currentPassword)
-                    SecureField("New Password", text: $newPassword)
-                    SecureField("Confirm New Password", text: $confirmNewPassword)
-                    Button("Update Password") {
-                        updatePassword()
+                    .listRowBackground(AppColors.card)
+                    Section(header: Text("Account")
+                        .font(.custom("AvenirNext-UltraLight", size: 18))
+                        .foregroundColor(AppColors.text.opacity(0.8))) {
+                        Text(email).foregroundColor(.gray)
+                        Button("Reset Password") {
+                            resetPassword()
+                        }
                     }
-                }
-
-                if let error = errorMessage {
-                    Section {
-                        Text("❌ \(error)").foregroundColor(.red)
+                    .listRowBackground(AppColors.card)
+                    Section(header: Text("Change Password")
+                        .font(.custom("AvenirNext-UltraLight", size: 18))
+                        .foregroundColor(AppColors.text.opacity(0.8))) {
+                        SecureField("Current Password", text: $currentPassword)
+                            .foregroundColor(.gray)
+                        SecureField("New Password", text: $newPassword)
+                            .foregroundColor(.gray)
+                        SecureField("Confirm New Password", text: $confirmNewPassword)
+                            .foregroundColor(AppColors.text)
+                        Button("Update Password") {
+                            updatePassword()
+                        }
                     }
-                }
-
-                if let message = successMessage {
-                    Section {
-                        Text("✅ \(message)").foregroundColor(.green)
+                    .listRowBackground(AppColors.card)
+                    if let error = errorMessage {
+                        Section {
+                            Text("❌ \(error)").foregroundColor(.red)
+                        }
+                        .listRowBackground(AppColors.card)
                     }
+                    if let message = successMessage {
+                        Section {
+                            Text("✅ \(message)").foregroundColor(.green)
+                        }
+                        .listRowBackground(AppColors.card)
+                    }
+                    Button("Save Changes") {
+                        saveProfile()
+                    }
+                    .listRowBackground(AppColors.card)
                 }
-
-                Button("Save Changes") {
-                    saveProfile()
+                .background(AppColors.background)
+                .scrollContentBackground(.hidden)
+            }
+            .navigationTitle("Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Profile")
+                        .font(.custom("AvenirNext-UltraLight", size: 24))
+                        .foregroundColor(AppColors.text)
                 }
             }
-            .font(.system(.body, design: .rounded))
-            .navigationTitle("Profile")
             .onAppear {
                 loadUserProfile()
             }

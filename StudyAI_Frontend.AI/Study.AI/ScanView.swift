@@ -3,6 +3,64 @@ import FirebaseAuth
 import UniformTypeIdentifiers
 import PDFKit
 
+struct ScanCardView: View {
+    @Binding var showFileImporter: Bool
+    @Binding var importedURL: URL?
+    @Binding var showTitlePrompt: Bool
+    @Binding var isUploading: Bool
+    @Binding var uploadSuccess: Bool
+    @Binding var errorMessage: String?
+    @Binding var noteTitle: String
+    let uploadRawPDF: (URL) -> Void
+
+    var body: some View {
+        VStack(spacing: 28) {
+            Text("📄 Scan PDF Notes")
+                .font(.title)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .padding(.bottom, 8)
+            Button(action: { showFileImporter = true }) {
+                HStack {
+                    Image(systemName: "doc")
+                    Text("Import PDF")
+                }
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(AppColors.card)
+                .cornerRadius(14)
+                .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+            }
+            .padding(.horizontal, 8)
+            if isUploading {
+                ProgressView("Uploading...")
+                    .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
+                    .foregroundColor(.white)
+                    .padding(.top, 8)
+            }
+            if uploadSuccess {
+                Text("✅ Uploaded & saved!")
+                    .foregroundColor(.green)
+                    .font(.system(size: 16, weight: .medium))
+                    .padding(.top, 8)
+            }
+            if let errorMessage = errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .font(.system(size: 15, weight: .medium))
+                    .padding(.top, 8)
+            }
+        }
+        .padding(24)
+        .background(AppColors.card.opacity(0.15))
+        .cornerRadius(18)
+        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+        .padding(.horizontal, 18)
+    }
+}
+
 struct ScanView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.presentationMode) var presentationMode
@@ -13,87 +71,71 @@ struct ScanView: View {
     @State private var uploadSuccess = false
     @State private var noteTitle = ""
     @State private var showTitlePrompt = false
-    @State private var summaryType = "medium"
-
-    let summaryOptions = ["short", "medium", "detailed", "academic"]
+    @State private var errorMessage: String? = nil
+    @State private var showErrorAlert = false
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("📄 Scan PDF Notes")
-                .font(.title)
-                .fontWeight(.semibold)
-
-            Button(action: { showFileImporter = true }) {
-                Label("Import PDF", systemImage: "doc")
+        ZStack {
+            AppColors.background.ignoresSafeArea()
+            VStack {
+                Spacer(minLength: 40)
+                ScanCardView(
+                    showFileImporter: $showFileImporter,
+                    importedURL: $importedURL,
+                    showTitlePrompt: $showTitlePrompt,
+                    isUploading: $isUploading,
+                    uploadSuccess: $uploadSuccess,
+                    errorMessage: $errorMessage,
+                    noteTitle: $noteTitle,
+                    uploadRawPDF: uploadRawPDF
+                )
+                Spacer()
             }
-            .buttonStyle(.bordered)
-
-            Section(header: Text("Summary Type")) {
-                Picker("Summary Type", selection: $summaryType) {
-                    ForEach(summaryOptions, id: \.self) { option in
-                        Text(option.capitalized)
-                    }
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Scan Notes")
+                        .font(.custom("AvenirNext-UltraLight", size: 22))
+                        .foregroundColor(.white)
                 }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
             }
-
-            Button("Save & Summarize") {
-                // only present sheet if we've already imported a URL
-                if importedURL != nil {
+            .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.pdf]) { result in
+                switch result {
+                case .success(let url):
+                    importedURL = url
                     showTitlePrompt = true
-                } else {
-                    showFileImporter = true
+                case .failure(let error):
+                    print("❌ Failed to import PDF: \(error.localizedDescription)")
                 }
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(isUploading)
-
-            if isUploading {
-                ProgressView("Uploading...")
-            }
-
-            if uploadSuccess {
-                Text("✅ Uploaded & saved!")
-                    .foregroundColor(.green)
-            }
-
-            Spacer()
-        }
-        .padding()
-        .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.pdf]) { result in
-            switch result {
-            case .success(let url):
-                importedURL = url
-                showTitlePrompt = true
-            case .failure(let error):
-                print("❌ Failed to import PDF: \(error.localizedDescription)")
-            }
-        }
-        .sheet(isPresented: $showTitlePrompt) {
-            VStack(spacing: 20) {
-                Text("Name your note")
-                    .font(.headline)
-
-                TextField("Enter a title...", text: $noteTitle)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.horizontal)
-
-                Button("Upload & Save") {
-                    showTitlePrompt = false
-                    if let url = importedURL {
-                        uploadRawPDF(url: url)
+            .sheet(isPresented: $showTitlePrompt) {
+                VStack(spacing: 20) {
+                    Text("Name your note")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    TextField("Enter a title...", text: $noteTitle)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
+                    Button("Upload & Save") {
+                        showTitlePrompt = false
+                        if let url = importedURL {
+                            uploadRawPDF(url: url)
+                        }
+                    }
+                    .padding()
+                    .buttonStyle(.borderedProminent)
+                    Button("Cancel", role: .cancel) {
+                        showTitlePrompt = false
                     }
                 }
+                .presentationDetents([.height(250)])
                 .padding()
-                .buttonStyle(.borderedProminent)
-
-                Button("Cancel", role: .cancel) {
-                    showTitlePrompt = false
-                }
+                .background(AppColors.background)
             }
-            .presentationDetents([.height(250)])
-            .padding()
+            .alert(isPresented: $showErrorAlert) {
+                Alert(title: Text("Error"), message: Text(errorMessage ?? "Unknown error"), dismissButton: .default(Text("OK")))
+            }
         }
     }
 
@@ -102,40 +144,33 @@ struct ScanView: View {
         uploadSuccess = false
 
         guard let userID = Auth.auth().currentUser?.uid else {
-            print("❌ Not logged in.")
+            showErrorAlert(message: "Not logged in.")
             isUploading = false
             return
         }
         guard let pdfData = try? Data(contentsOf: url) else {
-            print("❌ Couldn't read PDF data")
+            showErrorAlert(message: "Couldn't read PDF data.")
             isUploading = false
             return
         }
 
         let boundary = UUID().uuidString
-        var request = URLRequest(url: URL(string: "http://127.0.0.1:8000/upload_pdf")!)
+        var request = URLRequest(url: URL(string: "\(APIConfig.baseURL)/upload_pdf")!)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)",
                          forHTTPHeaderField: "Content-Type")
 
         var body = Data()
-        func appendField(_ name: String, _ value: String) {
-            body.append("--\(boundary)\r\n")
-            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n")
-            body.append("\(value)\r\n")
-        }
-
-        appendField("user_id", userID)
-        appendField("title", noteTitle)
-        appendField("summary_type", summaryType)
+        body.appendFormField(named: "user_id", value: userID, using: boundary)
+        body.appendFormField(named: "title", value: noteTitle, using: boundary)
 
         // file data
-        body.append("--\(boundary)\r\n")
-        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"note.pdf\"\r\n")
-        body.append("Content-Type: application/pdf\r\n\r\n")
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"note.pdf\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: application/pdf\r\n\r\n".data(using: .utf8)!)
         body.append(pdfData)
-        body.append("\r\n")
-        body.append("--\(boundary)--\r\n")
+        body.append("\r\n".data(using: .utf8)!)
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
 
         request.httpBody = body
 
@@ -143,52 +178,38 @@ struct ScanView: View {
             DispatchQueue.main.async { isUploading = false }
 
             if let error = error {
-                print("❌ Upload failed: \(error.localizedDescription)")
+                showErrorAlert(message: "Upload failed: \(error.localizedDescription)")
                 return
             }
             guard let data = data else {
-                print("❌ No data returned from server.")
+                showErrorAlert(message: "No data returned from server.")
                 return
             }
 
             do {
                 let decoded = try JSONDecoder().decode([String: String].self, from: data)
-                guard
-                  let raw = decoded["raw_text"],
-                  let summary = decoded["summary"]
-                else {
-                    print("❌ Missing keys in response JSON.")
+                guard let summaryId = decoded["summary_id"] else {
+                    showErrorAlert(message: "Missing summary ID in response JSON.")
                     return
                 }
-
-                NoteService.saveNote(name: noteTitle,
-                                     content: raw,
-                                     summary: summary,
-                                     source: "pdf") { err in
-                    DispatchQueue.main.async {
-                        if let err = err {
-                            print("❌ Firestore error: \(err.localizedDescription)")
-                        } else {
-                            // switch to Summaries tab and pop back
-                            appState.selectedTab = .summaries
-                            uploadSuccess = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                                presentationMode.wrappedValue.dismiss()
-                            }
-                        }
+                // switch to Summaries tab and pop back
+                DispatchQueue.main.async {
+                    appState.newSummaryId = summaryId
+                    appState.selectedTab = .summaries
+                    uploadSuccess = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                        presentationMode.wrappedValue.dismiss()
                     }
                 }
             } catch {
-                print("❌ JSON decoding error: \(error.localizedDescription)")
+                showErrorAlert(message: "JSON decoding error: \(error.localizedDescription)")
             }
         }.resume()
     }
-}
 
-extension Data {
-    mutating func appendString(_ string: String) {
-        if let data = string.data(using: .utf8) {
-            append(data)
-        }
+    // Helper to show error alerts
+    private func showErrorAlert(message: String) {
+        errorMessage = message
+        showErrorAlert = true
     }
 }

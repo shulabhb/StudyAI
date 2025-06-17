@@ -13,6 +13,8 @@ import FirebaseFirestore
 struct SignupView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.presentationMode) var presentationMode
+    @State private var isAnimating = false
+    @State private var animate = false
 
     // Form Fields
     @State private var firstName = ""
@@ -23,52 +25,124 @@ struct SignupView: View {
     @State private var selectedCountry = "United States"
     @State private var email = ""
     @State private var password = ""
-
     @State private var errorMessage: String?
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                Text("Create Account")
-                    .font(.largeTitle)
-                    .bold()
-
-                Group {
-                    TextField("First Name", text: $firstName)
-                    TextField("Last Name", text: $lastName)
-                    TextField("Username", text: $username)
-                    TextField("Age", text: $age)
-                        .keyboardType(.numberPad)
-                    DatePicker("Date of Birth", selection: $dateOfBirth, displayedComponents: .date)
-                        .datePickerStyle(.compact)
-                    Picker("Country", selection: $selectedCountry) {
-                        ForEach(countryList, id: \.self) { country in
-                            Text(country).tag(country)
+        ZStack {
+            AppColors.background.ignoresSafeArea()
+            ScrollView {
+                VStack(spacing: 25) {
+                    Text("Create Account")
+                        .font(.custom("AvenirNext-UltraLight", size: 36))
+                        .foregroundColor(AppColors.text)
+                        .padding(.top, 30)
+                        .scaleEffect(animate ? 1 : 0.8)
+                        .opacity(animate ? 1 : 0)
+                    VStack(spacing: 20) {
+                        HStack(spacing: 15) {
+                            CustomTextField(
+                                text: $firstName,
+                                placeholder: "First Name",
+                                systemImage: "person.fill"
+                            )
+                            CustomTextField(
+                                text: $lastName,
+                                placeholder: "Last Name",
+                                systemImage: "person.fill"
+                            )
                         }
-                    }
-                }
-
-                Group {
-                    TextField("Email", text: $email)
+                        HStack(spacing: 15) {
+                            CustomTextField(
+                                text: $username,
+                                placeholder: "Username",
+                                systemImage: "at"
+                            )
+                            CustomTextField(
+                                text: $age,
+                                placeholder: "Age",
+                                systemImage: "calendar"
+                            )
+                            .keyboardType(.numberPad)
+                        }
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Date of Birth")
+                                .foregroundColor(AppColors.text.opacity(0.8))
+                                .font(.system(size: 14, weight: .medium))
+                            DatePicker("", selection: $dateOfBirth, displayedComponents: .date)
+                                .datePickerStyle(.compact)
+                                .colorScheme(.dark)
+                                .accentColor(AppColors.text)
+                        }
+                        .padding()
+                        .background(AppColors.card)
+                        .cornerRadius(15)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(AppColors.text.opacity(0.2), lineWidth: 1)
+                        )
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Country")
+                                .foregroundColor(AppColors.text.opacity(0.8))
+                                .font(.system(size: 14, weight: .medium))
+                            Picker("", selection: $selectedCountry) {
+                                ForEach(countryList, id: \.self) { country in
+                                    Text(country).tag(country)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .accentColor(AppColors.text)
+                        }
+                        .padding()
+                        .background(AppColors.card)
+                        .cornerRadius(15)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(AppColors.text.opacity(0.2), lineWidth: 1)
+                        )
+                        CustomTextField(
+                            text: $email,
+                            placeholder: "Email",
+                            systemImage: "envelope.fill"
+                        )
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
-                    SecureField("Password", text: $password)
-
-                    if let error = errorMessage {
-                        Text(error)
-                            .foregroundColor(.red)
-                            .multilineTextAlignment(.center)
+                        CustomSecureField(
+                            text: $password,
+                            placeholder: "Password",
+                            systemImage: "lock.fill"
+                        )
+                        if let error = errorMessage {
+                            Text(error)
+                                .foregroundColor(.red)
+                                .font(.system(size: 14, weight: .medium))
+                                .multilineTextAlignment(.center)
+                        }
+                        Button(action: signUp) {
+                            Text("CREATE ACCOUNT")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(AppColors.text)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 55)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .fill(AppColors.card)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 15)
+                                                .stroke(AppColors.text.opacity(0.2), lineWidth: 1)
+                                        )
+                                )
+                                .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+                        }
+                        .padding(.top, 10)
                     }
-
-                    Button("Sign Up") {
-                        signUp()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .padding(.top)
+                    .padding(.horizontal, 25)
                 }
+                .padding(.bottom, 30)
             }
-            .textFieldStyle(RoundedBorderTextFieldStyle())
-            .padding()
+            .opacity(animate ? 1 : 0)
+            .offset(y: animate ? 0 : 20)
+            .animation(.easeOut(duration: 0.6), value: animate)
+            .onAppear { animate = true }
         }
     }
 

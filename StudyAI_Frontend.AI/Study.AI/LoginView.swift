@@ -15,88 +15,74 @@ struct LoginView: View {
     @State private var password = ""
     @State private var errorMessage: String?
     @State private var animate = false
-
+    @State private var isAnimating = false
+    
     var body: some View {
         NavigationView {
             ZStack {
-                // Background gradient
-                LinearGradient(
-                    gradient: Gradient(colors: [Color(.systemGray4), Color(.systemGray6)]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-
+                AppColors.background.ignoresSafeArea()
                 VStack(spacing: 30) {
-                    // Logo
-                    Text("Study.AI")
-                        .font(.system(size: 36, weight: .heavy))
-                        .foregroundColor(.mint)
-                        .shadow(color: .white.opacity(0.8), radius: 8)
-                        .padding(.bottom, 10)
-
-                    // Email Field
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Email").font(.caption).foregroundColor(.gray)
-                        TextField("you@example.com", text: $email)
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(color: .gray.opacity(0.3), radius: 6, x: 0, y: 3)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
+                    Text("STUDY.AI")
+                        .font(.custom("AvenirNext-UltraLight", size: 42))
+                        .foregroundColor(AppColors.text)
+                        .padding(.bottom, 20)
+                        .scaleEffect(animate ? 1 : 0.8)
+                        .opacity(animate ? 1 : 0)
+                    VStack(spacing: 25) {
+                        CustomTextField(
+                            text: $email,
+                            placeholder: "Email",
+                            systemImage: "envelope.fill"
+                        )
+                        CustomSecureField(
+                            text: $password,
+                            placeholder: "Password",
+                            systemImage: "lock.fill"
+                        )
+                        if let error = errorMessage {
+                            Text(error)
+                                .foregroundColor(.red)
+                                .font(.system(size: 14, weight: .medium))
+                                .multilineTextAlignment(.center)
+                                .padding(.top, -10)
+                        }
+                        Button("Forgot Password?") {
+                            // Optional reset flow
+                        }
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(AppColors.text.opacity(0.7))
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                     }
-
-                    // Password Field
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Password").font(.caption).foregroundColor(.gray)
-                        SecureField("Enter password", text: $password)
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(color: .gray.opacity(0.3), radius: 6, x: 0, y: 3)
-                    }
-
-                    // Error Message
-                    if let error = errorMessage {
-                        Text(error)
-                            .foregroundColor(.red)
-                            .multilineTextAlignment(.center)
-                            .padding(.top, -10)
-                    }
-
-                    // Forgot password
-                    Button("Forgot Password?") {
-                        // Optional reset flow
-                    }
-                    .font(.footnote)
-                    .foregroundColor(.blue)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-
-                    // Login Button
+                    .padding(.horizontal, 25)
                     Button(action: logIn) {
-                        Text("Log In")
+                        Text("LOG IN")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(AppColors.text)
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
-                            .shadow(radius: 5)
-                            .scaleEffect(animate ? 1 : 0.95)
+                            .frame(height: 55)
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(AppColors.card)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 15)
+                                            .stroke(AppColors.text.opacity(0.2), lineWidth: 1)
+                                    )
+                            )
+                            .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
                     }
-
-                    // Sign-up Navigation
+                    .padding(.horizontal, 25)
+                    .scaleEffect(animate ? 1 : 0.9)
                     HStack {
-                        Text("First time here?").foregroundColor(.gray)
+                        Text("First time here?")
+                            .foregroundColor(AppColors.text.opacity(0.7))
                         NavigationLink("Get Started", destination: SignupView())
-                            .foregroundColor(.blue)
-                            .bold()
+                            .foregroundColor(AppColors.accent)
+                            .font(.system(size: 16, weight: .bold))
                     }
-                    .padding(.top, 10)
-
+                    .padding(.top, 20)
                     Spacer()
                 }
-                .padding()
+                .padding(.top, 50)
                 .opacity(animate ? 1 : 0)
                 .offset(y: animate ? 0 : 20)
                 .animation(.easeOut(duration: 0.6), value: animate)
@@ -104,7 +90,7 @@ struct LoginView: View {
             }
         }
     }
-
+    
     // MARK: - Login Logic
     private func logIn() {
         errorMessage = nil
@@ -134,11 +120,64 @@ struct LoginView: View {
                 if let data = snapshot?.data(),
                    let username = data["username"] as? String {
                     appState.username = username
+                    appState.selectedTab = .home  // Reset to home tab
                     appState.isLoggedIn = true
                 } else {
                     errorMessage = "User data not found."
                 }
             }
         }
+    }
+}
+
+// Custom TextField View
+struct CustomTextField: View {
+    @Binding var text: String
+    let placeholder: String
+    let systemImage: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: systemImage)
+                .foregroundColor(.white.opacity(0.8))
+                .frame(width: 20)
+            
+            TextField(placeholder, text: $text)
+                .foregroundColor(.white)
+                .autocapitalization(.none)
+                .keyboardType(.emailAddress)
+        }
+        .padding()
+        .background(Color.white.opacity(0.15))
+        .cornerRadius(15)
+        .overlay(
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+        )
+    }
+}
+
+// Custom SecureField View
+struct CustomSecureField: View {
+    @Binding var text: String
+    let placeholder: String
+    let systemImage: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: systemImage)
+                .foregroundColor(.white.opacity(0.8))
+                .frame(width: 20)
+            
+            SecureField(placeholder, text: $text)
+                .foregroundColor(.white)
+        }
+        .padding()
+        .background(Color.white.opacity(0.15))
+        .cornerRadius(15)
+        .overlay(
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+        )
     }
 }

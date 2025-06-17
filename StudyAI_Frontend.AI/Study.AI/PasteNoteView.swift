@@ -1,9 +1,3 @@
-//  PasteNoteView.swift
-//  Study.AI
-//
-//  Created by Shulabh Bhattarai on 5/27/25.
-//
-
 import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
@@ -14,156 +8,115 @@ struct PasteNoteView: View {
 
     @State private var noteTitle = ""
     @State private var noteContent = ""
-    @State private var summaryType = "medium"
     @State private var isSummarizing = false
     @State private var errorMessage: String?
     @State private var successMessage: String?
-
-    let summaryOptions = ["short", "medium", "detailed", "academic"]
+    @State private var showErrorAlert = false
 
     var body: some View {
-        Form {
-            Section(header: Text("Title")) {
-                TextField("Enter title", text: $noteTitle)
-            }
-
-            Section(header: Text("Paste Your Note Here")) {
-                TextEditor(text: $noteContent)
-                    .frame(minHeight: 200)
-            }
-
-            Section(header: Text("Summary Type")) {
-                Picker("Summary Type", selection: $summaryType) {
-                    ForEach(summaryOptions, id: \.self) { opt in
-                        Text(opt.capitalized)
+        ZStack {
+            AppColors.background.ignoresSafeArea()
+            VStack(spacing: 24) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("TITLE")
+                        .foregroundColor(AppColors.text.opacity(0.7))
+                        .font(.caption)
+                    TextField("Enter title", text: $noteTitle)
+                        .padding(12)
+                        .background(AppColors.card)
+                        .foregroundColor(.white)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.white.opacity(0.7), lineWidth: 1)
+                        )
+                        .cornerRadius(10)
+                }
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("PASTE YOUR NOTE HERE")
+                        .foregroundColor(AppColors.text.opacity(0.7))
+                        .font(.caption)
+                    ZStack(alignment: .topLeading) {
+                        AppColors.card
+                            .cornerRadius(10)
+                        TextEditor(text: $noteContent)
+                            .padding(12)
+                            .background(Color.clear)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .scrollContentBackground(.hidden)
+                            .frame(minHeight: 200)
                     }
                 }
-                .pickerStyle(SegmentedPickerStyle())
+                if let message = successMessage {
+                    Text("✅ \(message)").foregroundColor(.green)
+                }
+                if let error = errorMessage {
+                    Text("❌ \(error)").foregroundColor(.red)
+                }
+                Button(action: summarizeAndSave) {
+                    if isSummarizing {
+                        ProgressView("Summarizing...")
+                    } else {
+                        Text("Save & Summarize")
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                .padding(.top, 8)
+                .padding(.horizontal)
+                .frame(height: 50)
+                .background(AppColors.card)
+                .foregroundColor(AppColors.accent)
+                .cornerRadius(12)
             }
-
-            if let message = successMessage {
-                Section { Text("✅ \(message)").foregroundColor(.green) }
-            }
-            if let error = errorMessage {
-                Section { Text("❌ \(error)").foregroundColor(.red) }
-            }
-
-            Button(action: summarizeAndSave) {
-                if isSummarizing {
-                    ProgressView("Summarizing...")
-                } else {
-                    Text("Save & Summarize")
-                        .frame(maxWidth: .infinity)
+            .padding(.horizontal, 18)
+            .padding(.top, 24)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Paste Note")
+                        .font(.custom("AvenirNext-UltraLight", size: 22))
+                        .foregroundColor(.white)
                 }
             }
+            .alert(isPresented: $showErrorAlert) {
+                Alert(title: Text("Error"), message: Text(errorMessage ?? "Unknown error"), dismissButton: .default(Text("OK")))
+            }
         }
-        .navigationTitle("Paste Note")
     }
 
     private func summarizeAndSave() {
         guard !noteTitle.isEmpty, !noteContent.isEmpty else {
-            errorMessage = "Title and content can't be empty."
+            showErrorAlert(message: "Title and content can't be empty.")
             return
         }
-        guard let userId = Auth.auth().currentUser?.uid else {
-            errorMessage = "User not logged in."
-            return
-        }
-
         isSummarizing = true
         errorMessage = nil
         successMessage = nil
-
-        let url = URL(string: "http://127.0.0.1:8000/summarize_raw")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        let boundary = UUID().uuidString
-        request.setValue("multipart/form-data; boundary=\(boundary)",
-                         forHTTPHeaderField: "Content-Type")
-
-        var body = Data()
-        let formFields: [(String, String)] = [
-            ("content", noteContent),
-            ("user_id", userId),
-            ("title", noteTitle),
-            ("summary_type", summaryType)
-        ]
-        for (k, v) in formFields {
-            body.append("--\(boundary)\r\n")
-            body.append("Content-Disposition: form-data; name=\"\(k)\"\r\n\r\n")
-            body.append("\(v)\r\n")
-        }
-        body.append("--\(boundary)--\r\n")
-        request.httpBody = body
-
-        URLSession.shared.dataTask(with: request) { data, _, error in
-            DispatchQueue.main.async { isSummarizing = false }
-
-            if let error = error {
-                DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
-                return
-            }
-            guard
-              let data = data,
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: String],
-              let summary = json["summary"]
-            else {
-                DispatchQueue.main.async {
-                    self.errorMessage = "Invalid backend response."
+        NoteService.createNoteViaBackend(name: noteTitle, content: noteContent, summaryType: "summary", source: "text") { result in
+            DispatchQueue.main.async {
+                isSummarizing = false
+                switch result {
+                case .success(let summaryId):
+                    self.successMessage = "Note and summary saved."
+                    self.noteContent = ""
+                    self.noteTitle = ""
+                    appState.newSummaryId = summaryId
+                    appState.selectedTab = .summaries
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                case .failure(let error):
+                    showErrorAlert(message: error.localizedDescription)
                 }
-                return
             }
-
-            let db = Firestore.firestore()
-            let noteId = UUID().uuidString
-            let summaryId = UUID().uuidString
-            let timestamp = Timestamp()
-
-            let noteData: [String: Any] = [
-                "name": noteTitle,
-                "content": noteContent,
-                "summary": summary,
-                "source": "text",
-                "createdAt": timestamp,
-                "summaryId": summaryId
-            ]
-            let summaryData: [String: Any] = [
-                "noteId": noteId,
-                "summary": summary,
-                "createdAt": timestamp
-            ]
-
-            let noteRef = db.collection("users")
-                             .document(userId)
-                             .collection("notes")
-                             .document(noteId)
-            let summaryRef = db.collection("users")
-                                .document(userId)
-                                .collection("summaries")
-                                .document(summaryId)
-
-            db.batch()
-              .setData(noteData, forDocument: noteRef)
-              .setData(summaryData, forDocument: summaryRef)
-              .commit { error in
-                  DispatchQueue.main.async {
-                      if let error = error {
-                          self.errorMessage = error.localizedDescription
-                      } else {
-                          // flip to Summaries tab
-                          appState.selectedTab = .summaries
-
-                          self.successMessage = "Note and summary saved."
-                          self.noteContent = ""
-                          self.noteTitle = ""
-                          DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                              presentationMode.wrappedValue.dismiss()
-                          }
-                      }
-                  }
-              }
         }
-        .resume()
+    }
+
+    // Helper to show error alerts
+    private func showErrorAlert(message: String) {
+        errorMessage = message
+        showErrorAlert = true
     }
 }
 
