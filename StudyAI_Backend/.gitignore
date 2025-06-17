@@ -1,14 +1,93 @@
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
 env/
-venv/
-*.env
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Firebase credentials
-*.json
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
 
-# Mac system files
+# Installer logs
+debug.log
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# mypy
+.mypy_cache/
+.dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# VS Code
+.vscode/
+
+# Firebase credentials and sensitive files
+serviceAccountKey.json
+
+# Ignore frontend and backend environment files
+.env
+.env.*
+
+# Ignore system files
 .DS_Store
+Thumbs.db
+
+# Ignore logs
+*.log
+
+# Ignore backup files
+*~
+*.bak
+
+# Ignore Python egg files
+*.egg
+
+# Ignore test output
+junit*.xml
+
+# Ignore render deployment config (optional)
+render.yaml
