@@ -249,78 +249,53 @@ users/{userId}/flashcardSets/{setId}
 
 ---
 
-## 🚀 Flashcard Feature: Implementation Overview
+## 🚀 Backend API Endpoints
 
-### Backend (FastAPI + Firestore)
-- **Endpoints:**
-  - `POST /generate_flashcards` – Generate flashcards from text/notes (AI-powered)
-  - `POST /create_flashcard_set` – Create a new flashcard set (manual or AI)
-  - `GET /flashcard_sets/{user_id}` – List all flashcard sets for a user
-  - `GET /flashcard_set/{user_id}/{set_id}` – Get details of a flashcard set
-  - `PUT /flashcard_set/{user_id}/{set_id}` – Update flashcards in a set
-  - `DELETE /flashcard_set/{user_id}/{set_id}` – Delete a flashcard set
-- **Firestore Structure:** See above for `flashcardSets` subcollection.
-- **Models:** See `models/flashcard.py` for Pydantic schemas.
-- **No image OCR, quiz, or collaborative endpoints yet.**
+| Method | Endpoint                                      | Description                                                      |
+|--------|-----------------------------------------------|------------------------------------------------------------------|
+| GET    | `/`                                           | Welcome message (health check)                                   |
+| POST   | `/summarize_text`                             | Summarize a note (JSON body: content, user_id, title, source)    |
+| POST   | `/summarize_raw`                              | Summarize raw text (form-data: content, user_id, title, etc.)    |
+| POST   | `/upload_pdf`                                 | Upload a PDF, extract text, and summarize                        |
+| POST   | `/upload_images`                              | Upload images, extract text, and summarize                       |
+| DELETE | `/delete_summary/{user_id}/{summary_id}`      | Delete a summary and its note                                    |
+| POST   | `/generate_flashcards`                        | Generate flashcards from content (AI-powered)                    |
+| POST   | `/create_flashcard_set`                       | Create a flashcard set manually (with a list of flashcards)      |
+| GET    | `/flashcard_sets/{user_id}`                   | Get all flashcard sets for a user                                |
+| GET    | `/flashcard_set/{user_id}/{set_id}`           | Get a specific flashcard set                                     |
+| PUT    | `/flashcard_set/{user_id}/{set_id}`           | Update a flashcard set with new flashcards                       |
+| DELETE | `/flashcard_set/{user_id}/{set_id}`           | Delete a flashcard set                                           |
 
-### Frontend (SwiftUI, Modular)
-- **All Files:**
-  - `APIConfig.swift`
-  - `AppDelegate.swift`
-  - `AppState.swift`
-  - `ContentView.swift`
-  - `CreateFlashcardSetView.swift`
-  - `CreateFlashcardView.swift`
-  - `DashboardView.swift`
-  - `Data+Multipart.swift`
-  - `EditCardsSheet.swift`
-  - `EditFlashcardSheet.swift`
-  - `EditNoteView.swift`
-  - `Extensions.swift`
-  - `FlashCardView.swift`
-  - `FlashcardCardView.swift`
-  - `FlashcardEditSheet.swift`
-  - `FlashcardGenerateVM.swift`
-  - `FlashcardGeneratorView.swift`
-  - `FlashcardModels.swift`
-  - `FlashcardPasteNoteView.swift`
-  - `FlashcardReviewVM.swift`
-  - `FlashcardSelectNoteView.swift`
-  - `FlashcardService.swift`
-  - `GoogleService-Info.plist`
-  - `LoadingView.swift`
-  - `LoginView.swift`
-  - `MainTabView.swift`
-  - `Note.swift`
-  - `NoteService.swift`
-  - `PasteNoteView.swift`
-  - `Persistence.swift`
-  - `ProfileView.swift`
-  - `RecordView.swift`
-  - `RoundedButton.swift`
-  - `SavedFlashcardReviewView.swift`
-  - `SavedFlashcardSetsView.swift`
-  - `ScanView.swift`
-  - `SettingsView.swift`
-  - `SignupView.swift`
-  - `Study_AI.entitlements`
-  - `Study_AIApp.swift`
-  - `Summary.swift`
-  - `SummaryService.swift`
-  - `SummaryView.swift`
-  - `Theme.swift`
-  - `WelcomeView.swift`
-  - `Assets.xcassets/`
-  - `Study_AI.xcdatamodeld/`
- 
-- **Features:**
-  - Generate flashcards from notes or pasted text using AI
-  - Manually create, edit, and delete sets and cards
-  - Review flashcards with a flip-card UI
-  - All flashcard data is synced with Firestore
-  - Modular SwiftUI code for maintainability and scalability
-  - PDF upload and scan, voice note recording, paste note, dashboard, profile, settings, export/share as PDF, custom theming, local persistence, and more
-- **No image OCR, quiz, or collaborative features in the frontend (yet).**
+---
+
+## 🧩 Full Project Summary
+
+### Backend
+- **All endpoints above are implemented and documented.**
+- Modular code: `main.py`, `firebase.py`, `models/`, `services/`, `utils/`
+- Features: Summarization (text, PDF, images), flashcard generation/CRUD, Firestore sync
+
+### Frontend
+- **All major features are modularized:**
+  - Flashcards: `Flashcard*` files, `SavedFlashcard*`, `EditCardsSheet`, `EditFlashcardSheet`, etc.
+  - Notes/Summaries: `PasteNoteView`, `SummaryView`, `EditNoteView`, `NoteService`, `SummaryService`
+  - PDF/Scan: `ScanView`
+  - Voice/Record: `RecordView`
+  - Dashboard & Navigation: `DashboardView`, `MainTabView`, `AppState`, `Study_AIApp`, `WelcomeView`
+  - Profile & Settings: `ProfileView`, `SettingsView`, `SignupView`, `LoginView`
+  - Persistence: `Persistence.swift`, `Study_AI.xcdatamodeld`
+  - UI/Theme: `Theme.swift`, `RoundedButton.swift`, `LoadingView.swift`, `Assets.xcassets`
+  - Utilities: `Extensions.swift`, `Data+Multipart.swift`, etc.
+- **Features:** Dashboard, paste/scan/record notes, summarize, export/share as PDF, full flashcard system, profile, settings, onboarding/auth, local persistence, custom theming, reusable UI
+
+### Data Model & Firestore
+- User, Note, Flashcard, FlashcardSet: All documented above
+- Syncs all user data, notes, summaries, and flashcards to Firestore
+
+### What's NOT Present
+- No quiz generator, analytics, or collaborative/group features (yet)
+- No image OCR endpoint (image upload is for text extraction/summarization only)
+- No global search or advanced analytics
 
 ---
 
