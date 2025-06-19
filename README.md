@@ -4,60 +4,60 @@ StudyAI is an intelligent, modular iOS study assistant that helps students organ
 
 ---
 
-## ✨ Features
+##  Features
 
-- 🏠 **Dashboard Home**  
+-  **Dashboard Home**  
   Central hub for navigation to all major features: paste note, scan PDF, record voice, flashcards, and more.
 
-- 📝 **Smart Note Summarization**  
+-  **Smart Note Summarization**  
   Summarize your notes using a locally hosted NLP backend (BART model).
 
-- 📄 **PDF Upload & Scan**  
+-  **PDF Upload & Scan**  
   Import PDF files, extract text, and generate AI summaries from scanned notes.
 
-- 🎙️ **Voice Note Recording & Transcription**  
-  Record voice notes, transcribe them, and generate AI summaries.
+-  **Voice Note Recording & Transcription**  
+  Record voice notes, transcribe them, and generate AI summaries + flashcards.
 
-- 📋 **Paste Note**  
+-  **Paste Note**  
   Paste text to quickly create and summarize notes.
 
-- 🧠 **AI Summaries with Multiple Styles**  
+-  **AI Summaries with Multiple Styles**  
   Choose from short, medium, detailed, or academic-style summaries.
 
-- 🧾 **Flashcard Generation, Review, and Management**  
+-  **Flashcard Generation, Review, and Management**  
   - Generate flashcards from notes or pasted text using AI.  
   - Manually create, edit, and delete flashcard sets and cards.  
   - Review flashcards with a modern, flip-card UI.  
   - All flashcard data is synced with Firestore for persistence and cross-device access.
 
-- 🔄 **Export & Share Notes as PDF**  
+-  **Export & Share Notes as PDF**  
   Export your notes as PDF for sharing or offline use.
 
-- 👤 **Profile Management**  
+-  **Profile Management**  
   View and edit your user profile.
 
-- ⚙️ **Settings & Preferences**  
+-  **Settings & Preferences**  
   Manage your account, log out, and view app version.
 
-- 🔐 **Secure Auth & Data Sync**  
+-  **Secure Auth & Data Sync**  
   Uses Firebase Authentication and Firestore to securely store user data, notes, summaries, and flashcards.
 
-- 💾 **Local Persistence**  
+-  **Local Persistence**  
   Uses Core Data for local caching and offline support.
 
-- 🎨 **Custom Theming & UI**  
+-  **Custom Theming & UI**  
   Consistent, beautiful theming and custom UI components throughout the app.
 
-- 🧩 **Modular, Maintainable Codebase**  
+- **Modular, Maintainable Codebase**  
   Utility extensions and reusable components for rapid development.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/StudyAI.git
+git clone https://github.com/shulabhb/StudyAI.git
 cd StudyAI
 ```
 
@@ -81,7 +81,7 @@ The backend will run on http://127.0.0.1:8000.
 
 ---
 
-## 🏗️ Project Structure
+##  Project Structure
 
 StudyAI/
 │
@@ -157,7 +157,7 @@ StudyAI/
 
 ---
 
-## 🔥 Firebase Structure
+## Firebase Structure
 
 ### Authentication
 - Email/Password authentication
@@ -299,7 +299,7 @@ users/{userId}/flashcardSets/{setId}
 
 ---
 
-## 🧪 Example Workflow
+##  Example Workflow
 1. Open the app and log in or sign up (onboarding flow).
 2. Use the dashboard to:
    - Paste text to create and summarize a note
