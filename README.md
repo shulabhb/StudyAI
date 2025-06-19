@@ -72,7 +72,7 @@ export GOOGLE_APPLICATION_CREDENTIALS=path/to/your/serviceAccountKey.json
 # Run the server (default port 8000)
 uvicorn main:app --reload --port 8000
 ```
-The backend will run on http://127.0.0.1:8000.
+The backend will run on http://127.0.0.1:8000.(Depending on your localhost ip, it may vary)
 
 ### 3. Frontend Setup (iOS)
 - Open `StudyAI_Frontend.AI/Study.AI/Study_AI.xcodeproj` in Xcode.
