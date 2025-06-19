@@ -1,25 +1,83 @@
 # 📚 StudyAI – AI-Powered Study Assistant App
 
-StudyAI is an intelligent, cross-modal iOS study assistant that helps students organize, summarize, and interact with study materials through both **PDF uploads** and **voice notes**. It integrates a custom AI backend and offers a clean, user-friendly frontend built for iPhones.
+StudyAI is an intelligent, modular iOS study assistant that helps students organize, summarize, and interact with study materials through **notes**, **PDFs**, **voice recordings**, and **AI-powered flashcards**. It features a custom FastAPI backend and a modern SwiftUI frontend, with all data synced via Firebase.
 
 ---
 
 ## ✨ Features
 
-- 📝 **Smart PDF Summarization**  
-  Upload PDFs from your device and receive editable, AI-generated summaries using a locally hosted NLP backend.
+- 🏠 **Dashboard Home**  
+  Central hub for navigation to all major features: paste note, scan PDF, record voice, flashcards, and more.
 
-- 🎙️ **Voice Notes with Transcription**  
-  Record thoughts or lectures using the app's voice note feature, powered by Apple's `SFSpeechRecognizer`.
+- 📝 **Smart Note Summarization**  
+  Summarize your notes using a locally hosted NLP backend (BART model).
+
+- 📄 **PDF Upload & Scan**  
+  Import PDF files, extract text, and generate AI summaries from scanned notes.
+
+- 🎙️ **Voice Note Recording & Transcription**  
+  Record voice notes, transcribe them, and generate AI summaries.
+
+- 📋 **Paste Note**  
+  Paste text to quickly create and summarize notes.
 
 - 🧠 **AI Summaries with Multiple Styles**  
-  Choose from short, medium, detailed, or academic-style summaries depending on your learning needs.
+  Choose from short, medium, detailed, or academic-style summaries.
 
-- 🧾 **Flashcard Scaffolding**  
-  Automatically scaffold flashcards from summarized notes for active recall and efficient revision.
+- 🧾 **Flashcard Generation, Review, and Management**  
+  - Generate flashcards from notes or pasted text using AI.  
+  - Manually create, edit, and delete flashcard sets and cards.  
+  - Review flashcards with a modern, flip-card UI.  
+  - All flashcard data is synced with Firestore for persistence and cross-device access.
+
+- 🔄 **Export & Share Notes as PDF**  
+  Export your notes as PDF for sharing or offline use.
+
+- 👤 **Profile Management**  
+  View and edit your user profile.
+
+- ⚙️ **Settings & Preferences**  
+  Manage your account, log out, and view app version.
 
 - 🔐 **Secure Auth & Data Sync**  
-  Uses Firebase Authentication and Firestore to securely store user data, notes, and summaries.
+  Uses Firebase Authentication and Firestore to securely store user data, notes, summaries, and flashcards.
+
+- 💾 **Local Persistence**  
+  Uses Core Data for local caching and offline support.
+
+- 🎨 **Custom Theming & UI**  
+  Consistent, beautiful theming and custom UI components throughout the app.
+
+- 🧩 **Modular, Maintainable Codebase**  
+  Utility extensions and reusable components for rapid development.
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/StudyAI.git
+cd StudyAI
+```
+
+### 2. Backend Setup (FastAPI)
+```bash
+cd StudyAI_Backend
+python3 -m venv env
+source env/bin/activate
+pip install -r requirements.txt
+# Set your Firebase credentials
+export GOOGLE_APPLICATION_CREDENTIALS=path/to/your/serviceAccountKey.json
+# Run the server (default port 8000)
+uvicorn main:app --reload --port 8000
+```
+The backend will run on http://127.0.0.1:8000.
+
+### 3. Frontend Setup (iOS)
+- Open `StudyAI_Frontend.AI/Study.AI/Study_AI.xcodeproj` in Xcode.
+- Set your Bundle ID and add your `GoogleService-Info.plist` for Firebase.
+- Build and run on a simulator or real iOS device.
 
 ---
 
@@ -27,21 +85,75 @@ StudyAI is an intelligent, cross-modal iOS study assistant that helps students o
 
 StudyAI/
 │
-├── StudyAI_Backend/ # FastAPI-based summarization backend
-│ ├── main.py # Entry point of FastAPI app
-│ ├── firebase.py # Firestore integration
-│ ├── requirements.txt # Python dependencies
-│ ├── models/ # Data models and schemas
-│ ├── services/ # Business logic services
-│ ├── utils/ # Utility functions
-│ └── serviceAccountKey.json # Firebase credentials
+├── StudyAI_Backend/ # FastAPI-based backend
+│ ├── main.py
+│ ├── firebase.py
+│ ├── requirements.txt
+│ ├── render.yaml
+│ ├── serviceAccountKey.json
+│ ├── models/
+│ │   ├── flashcard.py
+│ │   └── note.py
+│ ├── services/
+│ │   ├── flashcard_service.py
+│ │   ├── summarizer_service.py
+│ │   ├── pdf_parser.py
+│ │   └── parser.py
+│ └── utils/
+│     ├── auto_google_creds.py
+│     └── storage.py
 │
-├── StudyAI_Frontend.AI/ # SwiftUI-based iOS app
-│ ├── Study.AI/ # Main iOS app source
-│ ├── Views/ # Login, Dashboard, Scan, Record, etc.
-│ └── Services/ # NoteService, SummaryService, etc.
+├── StudyAI_Frontend.AI/
+│ └── Study.AI/
+│     ├── APIConfig.swift
+│     ├── AppDelegate.swift
+│     ├── AppState.swift
+│     ├── ContentView.swift
+│     ├── CreateFlashcardSetView.swift
+│     ├── CreateFlashcardView.swift
+│     ├── DashboardView.swift
+│     ├── Data+Multipart.swift
+│     ├── EditCardsSheet.swift
+│     ├── EditFlashcardSheet.swift
+│     ├── EditNoteView.swift
+│     ├── Extensions.swift
+│     ├── FlashCardView.swift
+│     ├── FlashcardCardView.swift
+│     ├── FlashcardEditSheet.swift
+│     ├── FlashcardGenerateVM.swift
+│     ├── FlashcardGeneratorView.swift
+│     ├── FlashcardModels.swift
+│     ├── FlashcardPasteNoteView.swift
+│     ├── FlashcardReviewVM.swift
+│     ├── FlashcardSelectNoteView.swift
+│     ├── FlashcardService.swift
+│     ├── GoogleService-Info.plist
+│     ├── LoadingView.swift
+│     ├── LoginView.swift
+│     ├── MainTabView.swift
+│     ├── Note.swift
+│     ├── NoteService.swift
+│     ├── PasteNoteView.swift
+│     ├── Persistence.swift
+│     ├── ProfileView.swift
+│     ├── RecordView.swift
+│     ├── RoundedButton.swift
+│     ├── SavedFlashcardReviewView.swift
+│     ├── SavedFlashcardSetsView.swift
+│     ├── ScanView.swift
+│     ├── SettingsView.swift
+│     ├── SignupView.swift
+│     ├── Study_AI.entitlements
+│     ├── Study_AIApp.swift
+│     ├── Summary.swift
+│     ├── SummaryService.swift
+│     ├── SummaryView.swift
+│     ├── Theme.swift
+│     ├── WelcomeView.swift
+│     └── Assets.xcassets/
+│     └── Study_AI.xcdatamodeld/
 │
-└── README.md # This file
+└── README.md
 
 ---
 
@@ -52,9 +164,9 @@ StudyAI/
 - Google Sign-In integration
 - User profile management
 
-### Firestore Collections
+### Firestore Collections & Data Models
 
-#### Users Collection
+#### 1. **User**
 ```json
 users/{userId}
 {
@@ -69,100 +181,177 @@ users/{userId}
 }
 ```
 
-#### Notes Collection
+#### 2. **Note**
 ```json
-notes/{noteId}
+users/{userId}/notes/{noteId}
 {
-  "userId": "string",
-  "title": "string",
-  "content": "string",
-  "type": "string", // "pdf" or "voice"
+  "name": "string",         // Note title
+  "content": "string",      // Full note text
+  "source": "string",       // e.g. "text", "pdf", "voice"
   "createdAt": "timestamp",
-  "updatedAt": "timestamp",
-  "summary": {
-    "short": "string",
-    "medium": "string",
-    "detailed": "string",
-    "academic": "string"
-  },
-  "metadata": {
-    "sourceFile": "string",
-    "duration": "number", // for voice notes
-    "pageCount": "number" // for PDFs
-  }
+  "noteId": "string"
 }
 ```
 
-#### Flashcards Collection
+#### 3. **Flashcard**
+- Used as an embedded object in a flashcard set.
 ```json
-flashcards/{flashcardId}
 {
-  "userId": "string",
-  "noteId": "string",
-  "question": "string",
-  "answer": "string",
-  "createdAt": "timestamp",
-  "lastReviewed": "timestamp",
-  "reviewCount": "number",
-  "difficulty": "number"
+  "id": "string",           // Unique flashcard ID
+  "question": "string",     // Flashcard question
+  "answer": "string"        // Flashcard answer
 }
 ```
 
----
-
-## 🚀 Tech Stack
-
-| Layer         | Technologies Used |
-|---------------|-------------------|
-| Frontend (iOS) | SwiftUI, Combine, AVFoundation, SFSpeechRecognizer |
-| Backend (AI)   | FastAPI, Python, Hugging Face Transformers (`facebook/bart-large-cnn`), pdfminer.six |
-| Cloud          | Firebase Auth, Firestore |
-| Optional       | Tesseract OCR (for future image support) |
-
----
-
-## 🔧 How to Run
-
-### 1. Backend Setup
-
-```bash
-cd StudyAI_Backend/
-python3 -m venv env
-source env/bin/activate
-pip install -r requirements.txt
+#### 4. **Flashcard Set**
+```json
+users/{userId}/flashcardSets/{setId}
+{
+  "id": "string",               // Set ID
+  "name": "string",             // Set name
+  "userId": "string",           // Owner user ID
+  "noteId": "string|null",      // Linked note ID (if any)
+  "noteTitle": "string|null",   // Linked note title (if any)
+  "flashcards": [               // Array of flashcard objects
+    {
+      "id": "string",
+      "question": "string",
+      "answer": "string"
+    }
+  ],
+  "createdAt": "timestamp"
+}
 ```
 
-# Set your Firebase credentials
-export GOOGLE_APPLICATION_CREDENTIALS=path/to/your/serviceAccountKey.json
+#### 5. **FlashcardSetDetail (API Response)**
+- Not stored in Firestore, but returned by the backend for detail views.
+```json
+{
+  "success": true,
+  "id": "string",
+  "name": "string",
+  "noteId": "string|null",
+  "noteTitle": "string|null",
+  "flashcards": [
+    {
+      "id": "string",
+      "question": "string",
+      "answer": "string"
+    }
+  ],
+  "createdAt": "timestamp"
+}
+```
 
-# Run the server
-uvicorn main:app --reload --port 8000
+- Each set contains an array of flashcard objects (question, answer, id).
+- Sets are linked to notes if generated from a note, or can be standalone.
+- All flashcard CRUD operations are performed at the set level.
 
-The backend will run on http://127.0.0.1:8000.
+---
 
-### 2. Frontend (iOS App)
-Open the project in Xcode: StudyAI_Frontend.AI/Study.AI/Study_AI.xcodeproj
+## 🚀 Flashcard Feature: Implementation Overview
 
-Set your Bundle ID and Firebase config (GoogleService-Info.plist)
+### Backend (FastAPI + Firestore)
+- **Endpoints:**
+  - `POST /generate_flashcards` – Generate flashcards from text/notes (AI-powered)
+  - `POST /create_flashcard_set` – Create a new flashcard set (manual or AI)
+  - `GET /flashcard_sets/{user_id}` – List all flashcard sets for a user
+  - `GET /flashcard_set/{user_id}/{set_id}` – Get details of a flashcard set
+  - `PUT /flashcard_set/{user_id}/{set_id}` – Update flashcards in a set
+  - `DELETE /flashcard_set/{user_id}/{set_id}` – Delete a flashcard set
+- **Firestore Structure:** See above for `flashcardSets` subcollection.
+- **Models:** See `models/flashcard.py` for Pydantic schemas.
+- **No image OCR, quiz, or collaborative endpoints yet.**
 
-Run the app on a simulator or real iOS device
+### Frontend (SwiftUI, Modular)
+- **All Files:**
+  - `APIConfig.swift`
+  - `AppDelegate.swift`
+  - `AppState.swift`
+  - `ContentView.swift`
+  - `CreateFlashcardSetView.swift`
+  - `CreateFlashcardView.swift`
+  - `DashboardView.swift`
+  - `Data+Multipart.swift`
+  - `EditCardsSheet.swift`
+  - `EditFlashcardSheet.swift`
+  - `EditNoteView.swift`
+  - `Extensions.swift`
+  - `FlashCardView.swift`
+  - `FlashcardCardView.swift`
+  - `FlashcardEditSheet.swift`
+  - `FlashcardGenerateVM.swift`
+  - `FlashcardGeneratorView.swift`
+  - `FlashcardModels.swift`
+  - `FlashcardPasteNoteView.swift`
+  - `FlashcardReviewVM.swift`
+  - `FlashcardSelectNoteView.swift`
+  - `FlashcardService.swift`
+  - `GoogleService-Info.plist`
+  - `LoadingView.swift`
+  - `LoginView.swift`
+  - `MainTabView.swift`
+  - `Note.swift`
+  - `NoteService.swift`
+  - `PasteNoteView.swift`
+  - `Persistence.swift`
+  - `ProfileView.swift`
+  - `RecordView.swift`
+  - `RoundedButton.swift`
+  - `SavedFlashcardReviewView.swift`
+  - `SavedFlashcardSetsView.swift`
+  - `ScanView.swift`
+  - `SettingsView.swift`
+  - `SignupView.swift`
+  - `Study_AI.entitlements`
+  - `Study_AIApp.swift`
+  - `Summary.swift`
+  - `SummaryService.swift`
+  - `SummaryView.swift`
+  - `Theme.swift`
+  - `WelcomeView.swift`
+  - `Assets.xcassets/`
+  - `Study_AI.xcdatamodeld/`
+ 
+- **Features:**
+  - Generate flashcards from notes or pasted text using AI
+  - Manually create, edit, and delete sets and cards
+  - Review flashcards with a flip-card UI
+  - All flashcard data is synced with Firestore
+  - Modular SwiftUI code for maintainability and scalability
+  - PDF upload and scan, voice note recording, paste note, dashboard, profile, settings, export/share as PDF, custom theming, local persistence, and more
+- **No image OCR, quiz, or collaborative features in the frontend (yet).**
 
 ---
 
 ## 🧪 Example Workflow
-1. Upload a PDF via the Scan tab → Get AI summary
-2. Record a voice note → Transcription appears in real-time
-3. Save note → Choose summary type → Summary & note saved to Firebase
-4. Access your notes in the Summary tab or Dashboard
-5. Use Flashcard tab to scaffold your revision
+1. Open the app and log in or sign up (onboarding flow).
+2. Use the dashboard to:
+   - Paste text to create and summarize a note
+   - Scan/upload a PDF and generate a summary
+   - Record a voice note and generate a summary
+   - Access flashcards, profile, or settings
+3. Generate flashcards using AI, or manually create a set.
+4. Edit, add, or delete flashcards in a set.
+5. Review flashcards with a flip-card UI.
+6. Export notes as PDF if needed.
+7. All changes are synced to Firestore and available across devices.
+
+---
+
+## 🧭 App State, Navigation, and Auth Flow
+- The app uses a robust navigation and authentication flow:
+  - Onboarding (WelcomeView)
+  - Login/Signup (LoginView, SignupView)
+  - MainTabView for dashboard, summaries, flashcards, and settings
+  - AppState.swift manages global state and navigation
+  - Profile and settings accessible from dashboard and tab bar
 
 ---
 
 ## 💡 Future Roadmap
-- Flashcard Generation Automation
-- OCR-based image parsing
-- Quiz generator based on content
-- Personalized study reminders
+- PDF and image OCR support
+- Quiz generator based on flashcards
 - Collaborative study groups
 - Progress tracking and analytics
 - Export functionality for notes and summaries

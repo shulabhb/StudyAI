@@ -34,7 +34,7 @@ struct MainTabView: View {
                     Text("Summaries")
                         .foregroundColor(appState.selectedTab == .summaries ? .tabActive : .tabInactive)
                 }
-            FlashcardView()
+            SavedFlashcardSetsView()
                 .tag(AppTab.flashcards)
                 .tabItem {
                     Image(systemName: "rectangle.stack.fill")

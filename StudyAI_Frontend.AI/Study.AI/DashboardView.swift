@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @EnvironmentObject var appState: AppState
+    @State private var showFlashcardGenerator = false
     
     // Custom colors
     private let backgroundColor = Color(red: 0.1, green: 0.15, blue: 0.25) // Light dark blue
@@ -63,7 +64,9 @@ struct DashboardView: View {
                                 dashboardButton(label: "Record Notes", systemImage: "waveform.circle.fill")
                             }
                             
-                            NavigationLink(destination: FlashcardView()) {
+                            Button(action: {
+                                showFlashcardGenerator = true
+                            }) {
                                 dashboardButton(label: "Flashcards", systemImage: "rectangle.stack")
                             }
                         }
@@ -83,6 +86,9 @@ struct DashboardView: View {
                         .foregroundColor(.white)
                 }
             }
+        }
+        .fullScreenCover(isPresented: $showFlashcardGenerator) {
+            FlashcardGeneratorView()
         }
     }
     
