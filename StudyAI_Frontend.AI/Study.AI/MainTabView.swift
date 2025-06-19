@@ -56,3 +56,18 @@ struct MainTabView: View {
         .accentColor(.white)
     }
 }
+
+// Extension to add logo to navigation bar
+extension View {
+    func withLogoNavigationBar() -> some View {
+        self.navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Image("AppLogo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 30, height: 30)
+            }
+        }
+    }
+}

@@ -20,7 +20,6 @@ struct SignupView: View {
     @State private var firstName = ""
     @State private var lastName = ""
     @State private var username = ""
-    @State private var age = ""
     @State private var dateOfBirth = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
     @State private var selectedCountry = "United States"
     @State private var email = ""
@@ -32,110 +31,26 @@ struct SignupView: View {
             AppColors.background.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 25) {
-                    Text("Create Account")
-                        .font(.custom("AvenirNext-UltraLight", size: 36))
-                        .foregroundColor(AppColors.text)
-                        .padding(.top, 30)
-                        .scaleEffect(animate ? 1 : 0.8)
-                        .opacity(animate ? 1 : 0)
-                    VStack(spacing: 20) {
-                        HStack(spacing: 15) {
-                            CustomTextField(
-                                text: $firstName,
-                                placeholder: "First Name",
-                                systemImage: "person.fill"
-                            )
-                            CustomTextField(
-                                text: $lastName,
-                                placeholder: "Last Name",
-                                systemImage: "person.fill"
-                            )
-                        }
-                        HStack(spacing: 15) {
-                            CustomTextField(
-                                text: $username,
-                                placeholder: "Username",
-                                systemImage: "at"
-                            )
-                            CustomTextField(
-                                text: $age,
-                                placeholder: "Age",
-                                systemImage: "calendar"
-                            )
-                            .keyboardType(.numberPad)
-                        }
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Date of Birth")
-                                .foregroundColor(AppColors.text.opacity(0.8))
-                                .font(.system(size: 14, weight: .medium))
-                            DatePicker("", selection: $dateOfBirth, displayedComponents: .date)
-                                .datePickerStyle(.compact)
-                                .colorScheme(.dark)
-                                .accentColor(AppColors.text)
-                        }
-                        .padding()
-                        .background(AppColors.card)
-                        .cornerRadius(15)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(AppColors.text.opacity(0.2), lineWidth: 1)
-                        )
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Country")
-                                .foregroundColor(AppColors.text.opacity(0.8))
-                                .font(.system(size: 14, weight: .medium))
-                            Picker("", selection: $selectedCountry) {
-                                ForEach(countryList, id: \.self) { country in
-                                    Text(country).tag(country)
-                                }
+                    // Back button
+                    HStack {
+                        Button(action: {
+                            appState.currentAuthFlow = .welcome
+                        }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 16, weight: .medium))
+                                Text("Back")
+                                    .font(.system(size: 16, weight: .medium))
                             }
-                            .pickerStyle(.menu)
-                            .accentColor(AppColors.text)
+                            .foregroundColor(AppColors.text.opacity(0.7))
                         }
-                        .padding()
-                        .background(AppColors.card)
-                        .cornerRadius(15)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(AppColors.text.opacity(0.2), lineWidth: 1)
-                        )
-                        CustomTextField(
-                            text: $email,
-                            placeholder: "Email",
-                            systemImage: "envelope.fill"
-                        )
-                        .keyboardType(.emailAddress)
-                        .autocapitalization(.none)
-                        CustomSecureField(
-                            text: $password,
-                            placeholder: "Password",
-                            systemImage: "lock.fill"
-                        )
-                        if let error = errorMessage {
-                            Text(error)
-                                .foregroundColor(.red)
-                                .font(.system(size: 14, weight: .medium))
-                                .multilineTextAlignment(.center)
-                        }
-                        Button(action: signUp) {
-                            Text("CREATE ACCOUNT")
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(AppColors.text)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 55)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .fill(AppColors.card)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 15)
-                                                .stroke(AppColors.text.opacity(0.2), lineWidth: 1)
-                                        )
-                                )
-                                .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
-                        }
-                        .padding(.top, 10)
+                        Spacer()
                     }
                     .padding(.horizontal, 25)
+                    .padding(.top, 10)
+                    logoSection
+                    titleSection
+                    formFieldsSection
                 }
                 .padding(.bottom, 30)
             }
@@ -146,35 +61,152 @@ struct SignupView: View {
         }
     }
 
+    private var logoSection: some View {
+        VStack(spacing: 10) {
+            Image("AppLogo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 100, height: 100)
+                .scaleEffect(animate ? 1 : 0.8)
+                .opacity(animate ? 1 : 0)
+        }
+        .padding(.top, 20)
+    }
+
+    private var titleSection: some View {
+        Text("Create Account")
+            .font(.custom("AvenirNext-UltraLight", size: 36))
+            .foregroundColor(AppColors.text)
+            .scaleEffect(animate ? 1 : 0.8)
+            .opacity(animate ? 1 : 0)
+    }
+
+    private var formFieldsSection: some View {
+        VStack(spacing: 20) {
+            HStack(spacing: 15) {
+                CustomTextField(
+                    text: $firstName,
+                    placeholder: "First Name",
+                    systemImage: "person.fill"
+                )
+                CustomTextField(
+                    text: $lastName,
+                    placeholder: "Last Name",
+                    systemImage: "person.fill"
+                )
+            }
+            CustomTextField(
+                text: $username,
+                placeholder: "Username",
+                systemImage: "at"
+            )
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Date of Birth")
+                    .foregroundColor(AppColors.text.opacity(0.8))
+                    .font(.system(size: 14, weight: .medium))
+                DatePicker("", selection: $dateOfBirth, displayedComponents: .date)
+                    .datePickerStyle(.compact)
+                    .colorScheme(.dark)
+                    .accentColor(AppColors.text)
+            }
+            .padding()
+            .background(AppColors.card)
+            .cornerRadius(15)
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(AppColors.text.opacity(0.2), lineWidth: 1)
+            )
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Country")
+                    .foregroundColor(AppColors.text.opacity(0.8))
+                    .font(.system(size: 14, weight: .medium))
+                Picker("", selection: $selectedCountry) {
+                    ForEach(countryList, id: \.self) { country in
+                        Text(country).tag(country)
+                    }
+                }
+                .pickerStyle(.menu)
+                .accentColor(AppColors.text)
+            }
+            .padding()
+            .background(AppColors.card)
+            .cornerRadius(15)
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(AppColors.text.opacity(0.2), lineWidth: 1)
+            )
+            CustomTextField(
+                text: $email,
+                placeholder: "Email",
+                systemImage: "envelope.fill"
+            )
+            .keyboardType(.emailAddress)
+            .autocapitalization(.none)
+            CustomSecureField(
+                text: $password,
+                placeholder: "Password",
+                systemImage: "lock.fill"
+            )
+            if let error = errorMessage {
+                Text(error)
+                    .foregroundColor(.red)
+                    .font(.system(size: 14, weight: .medium))
+                    .multilineTextAlignment(.center)
+            }
+            Button(action: signUp) {
+                Text("CREATE ACCOUNT")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(AppColors.text)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 55)
+                    .background(
+                        RoundedRectangle(cornerRadius: 15)
+                            .fill(AppColors.card)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .stroke(AppColors.text.opacity(0.2), lineWidth: 1)
+                            )
+                    )
+                    .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+            }
+            .padding(.top, 10)
+            HStack {
+                Text("Already have an account?")
+                    .foregroundColor(AppColors.text.opacity(0.7))
+                Button("Log In") {
+                    appState.currentAuthFlow = .login
+                }
+                .foregroundColor(AppColors.accent)
+                .font(.system(size: 16, weight: .bold))
+            }
+            .padding(.top, 20)
+        }
+        .padding(.horizontal, 25)
+    }
+
     // MARK: - Firebase Signup Logic
     private func signUp() {
         errorMessage = nil
-
         guard !email.isEmpty, !password.isEmpty else {
             errorMessage = "Email and Password are required."
             return
         }
-
         Auth.auth().createUser(withEmail: email, password: password) { result, error in
             if let error = error {
                 self.errorMessage = "Signup failed: \(error.localizedDescription)"
                 return
             }
-
             guard let uid = result?.user.uid else { return }
-
             let db = Firestore.firestore()
             let userData: [String: Any] = [
                 "firstName": firstName,
                 "lastName": lastName,
                 "username": username,
-                "age": Int(age) ?? 0,
                 "country": selectedCountry,
                 "dateOfBirth": Timestamp(date: dateOfBirth),
                 "email": email,
                 "createdAt": Timestamp()
             ]
-
             db.collection("users").document(uid).setData(userData) { error in
                 if let error = error {
                     self.errorMessage = "Firestore error: \(error.localizedDescription)"

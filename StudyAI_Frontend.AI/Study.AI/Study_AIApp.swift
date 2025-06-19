@@ -25,8 +25,17 @@ struct Study_AIApp: App {
                     .environment(\.managedObjectContext, persistenceController.container.viewContext)
                     .environmentObject(appState)
             } else {
-                LoginView()
-                    .environmentObject(appState)
+                switch appState.currentAuthFlow {
+                case .welcome:
+                    WelcomeView()
+                        .environmentObject(appState)
+                case .login:
+                    LoginView()
+                        .environmentObject(appState)
+                case .signup:
+                    SignupView()
+                        .environmentObject(appState)
+                }
             }
         }
     }

@@ -19,8 +19,6 @@ struct RecordView: View {
     @State private var glowIntensity: Double = 0.4
     @State private var audioLevel: CGFloat = 0.4
 
-    @State private var showSaveOptions = false
-    @State private var showTitlePrompt = false
     @State private var noteTitle = ""
 
     // Error alert state
@@ -28,6 +26,10 @@ struct RecordView: View {
     @State private var showErrorAlert = false
 
     @State private var isSummarizing = false
+    @State private var hasRecordedContent = false
+    @State private var showCustomSummarizeUI = false
+
+    @State private var progressText = "Summarizing..."
 
     private let audioEngine = AVAudioEngine()
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
@@ -49,6 +51,17 @@ struct RecordView: View {
                         .foregroundColor(.white)
                         .cornerRadius(12)
                         .scrollContentBackground(.hidden)
+                }
+                
+                // Character counter
+                if hasRecordedContent && !transcript.isEmpty {
+                    HStack {
+                        Spacer()
+                        Text("\(transcript.count) characters")
+                            .font(.caption)
+                            .foregroundColor(transcript.count < 300 ? .orange : (transcript.count > 5000 ? .red : .green))
+                            .padding(.horizontal)
+                    }
                 }
 
                 Spacer()
@@ -78,24 +91,54 @@ struct RecordView: View {
 
             VStack {
                 Spacer()
-                Button(action: {
-                    provideHapticFeedback()
-                    isRecording ? stopRecording() : startRecording()
-                }) {
-                    ZStack {
-                        Circle()
-                            .fill(isRecording ? Color.red : AppColors.card)
-                            .frame(width: 72, height: 72)
-                            .scaleEffect(isRecording ? audioLevel : 1.0)
-                            .shadow(color: isRecording ? Color.red.opacity(0.4) : Color.white.opacity(0.15), radius: isRecording ? 32 * audioLevel : 8, x: 0, y: 4)
-                            .overlay(
-                                Circle()
-                                    .stroke(isRecording ? Color.white : Color.white.opacity(0.5), lineWidth: 2)
-                            )
-                        Image(systemName: isRecording ? "stop.fill" : "mic.fill")
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(.white)
+                HStack(spacing: 20) {
+                    // Record Button
+                    Button(action: {
+                        provideHapticFeedback()
+                        isRecording ? stopRecording() : startRecording()
+                    }) {
+                        ZStack {
+                            Circle()
+                                .fill(isRecording ? Color.red : AppColors.card)
+                                .frame(width: 72, height: 72)
+                                .scaleEffect(isRecording ? audioLevel : 1.0)
+                                .shadow(color: isRecording ? Color.red.opacity(0.4) : Color.white.opacity(0.15), radius: isRecording ? 32 * audioLevel : 8, x: 0, y: 4)
+                                .overlay(
+                                    Circle()
+                                        .stroke(isRecording ? Color.white : Color.white.opacity(0.5), lineWidth: 2)
+                                )
+                            Image(systemName: isRecording ? "stop.fill" : "mic.fill")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundColor(.white)
+                        }
                     }
+                    
+                    // Summarize Button
+                    Button(action: {
+                        if hasRecordedContent && !transcript.isEmpty {
+                            let charCount = transcript.count
+                            if charCount < 300 {
+                                showErrorAlert(message: "Not enough characters. Please record at least 300 characters.")
+                                return
+                            }
+                            showCustomSummarizeUI = true
+                        }
+                    }) {
+                        ZStack {
+                            Circle()
+                                .fill(hasRecordedContent && !transcript.isEmpty ? AppColors.accent : AppColors.card.opacity(0.5))
+                                .frame(width: 72, height: 72)
+                                .shadow(color: hasRecordedContent && !transcript.isEmpty ? AppColors.accent.opacity(0.4) : Color.clear, radius: 8, x: 0, y: 4)
+                                .overlay(
+                                    Circle()
+                                        .stroke(hasRecordedContent && !transcript.isEmpty ? Color.white : Color.white.opacity(0.3), lineWidth: 2)
+                                )
+                            Image(systemName: "text.bubble")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .disabled(!hasRecordedContent || transcript.isEmpty)
                 }
                 .padding(.bottom, 36)
             }
@@ -104,51 +147,106 @@ struct RecordView: View {
             Alert(title: Text("Error"), message: Text(errorMessage ?? "Unknown error"), dismissButton: .default(Text("OK")))
         }
         .onAppear { requestPermissions() }
-        .alert("Save this note?", isPresented: $showSaveOptions) {
-            Button("Save & Summarize") { showTitlePrompt = true }
-            Button("Discard", role: .destructive) {
-                transcript = "Tap the mic and start speaking..."
-            }
-            Button("Cancel", role: .cancel) { }
-        } message: {
-            Text("Would you like to save this note or discard it?")
-        }
-        .sheet(isPresented: $showTitlePrompt) {
-            VStack(spacing: 20) {
-                Text("Name your note")
-                    .font(.headline)
-
-                TextField("Enter a title...", text: $noteTitle)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.horizontal)
-
-                Button("Save & Summarize") {
-                    isSummarizing = true
-                    saveAndSummarizeNote()
-                }
-                .padding()
-                .buttonStyle(.borderedProminent)
-                .disabled(isSummarizing)
-
-                Button("Cancel", role: .cancel) {
-                    showTitlePrompt = false
-                }
-            }
-            .presentationDetents([.height(250)])
-            .padding()
-        }
         .overlay(
             Group {
-                if isSummarizing {
+                if showCustomSummarizeUI {
                     ZStack {
-                        Color.black.opacity(0.3).ignoresSafeArea()
-                        ProgressView("Summarizing...")
-                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
-                            .foregroundColor(.white)
-                            .padding(32)
-                            .background(AppColors.card)
-                            .cornerRadius(16)
+                        Color.black.opacity(0.6).ignoresSafeArea()
+                            .onTapGesture {
+                                showCustomSummarizeUI = false
+                            }
+                        
+                        VStack(spacing: 24) {
+                            // Header
+                            HStack {
+                                Text("Summarize Voice Note")
+                                    .font(.title2.weight(.semibold))
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Button(action: { showCustomSummarizeUI = false }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.title2)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            
+                            // Character count info
+                            HStack {
+                                Image(systemName: "text.bubble")
+                                    .foregroundColor(AppColors.accent)
+                                Text("\(transcript.count) characters recorded")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                Spacer()
+                            }
+                            
+                            // Title input
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Note Title")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                TextField("Enter a title for your note...", text: $noteTitle)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .padding(.horizontal, 0)
+                            }
+                            
+                            // Action buttons
+                            HStack(spacing: 16) {
+                                Button(action: {
+                                    resetRecording()
+                                    showCustomSummarizeUI = false
+                                }) {
+                                    HStack {
+                                        Image(systemName: "arrow.clockwise")
+                                        Text("Reset")
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.red.opacity(0.8))
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                                }
+                                
+                                Button(action: {
+                                    if !noteTitle.isEmpty {
+                                        isSummarizing = true
+                                        saveAndSummarizeNote()
+                                        showCustomSummarizeUI = false
+                                    }
+                                }) {
+                                    HStack {
+                                        if isSummarizing {
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                                .scaleEffect(0.8)
+                                        } else {
+                                            Image(systemName: "checkmark.circle")
+                                        }
+                                        Text(isSummarizing ? "Processing..." : "Save & Summarize")
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(noteTitle.isEmpty ? Color.gray : AppColors.accent)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                                }
+                                .disabled(noteTitle.isEmpty || isSummarizing)
+                            }
+                        }
+                        .padding(24)
+                        .background(AppColors.card)
+                        .cornerRadius(20)
+                        .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
+                        .padding(.horizontal, 20)
                     }
+                }
+                
+                if isSummarizing {
+                    Color.black.opacity(0.3).ignoresSafeArea()
+                    Text(progressText)
+                        .font(.title2.bold())
+                        .foregroundColor(AppColors.accent)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 }
             }
         )
@@ -210,6 +308,7 @@ struct RecordView: View {
         isRecording = true
         isPaused = false
         duration = 0
+        hasRecordedContent = true
         if transcript == "Tap the mic and start speaking..." {
             transcript = ""
         }
@@ -278,10 +377,6 @@ struct RecordView: View {
         recognitionTask?.finish()
 
         DispatchQueue.main.async { audioLevel = 0.4 }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            showSaveOptions = true
-        }
     }
 
     private func startTimer() {
@@ -304,11 +399,19 @@ struct RecordView: View {
             isSummarizing = false
             return
         }
+        progressText = "Reading note..."
         NoteService.createNoteViaBackend(name: noteTitle, content: transcript, summaryType: "summary", source: "voice") { result in
             DispatchQueue.main.async {
+                progressText = "Summarizing..."
+                // Simulate staged progress
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                    progressText = "Preparing summary..."
+                }
                 isSummarizing = false
                 switch result {
                 case .success(let summaryId):
+                    hasRecordedContent = false
+                    transcript = "Tap the mic and start speaking..."
                     appState.newSummaryId = summaryId
                     appState.selectedTab = .summaries
                     presentationMode.wrappedValue.dismiss()
@@ -317,6 +420,15 @@ struct RecordView: View {
                 }
             }
         }
+    }
+
+    private func resetRecording() {
+        isRecording = false
+        isPaused = false
+        duration = 0
+        hasRecordedContent = false
+        transcript = "Tap the mic and start speaking..."
+        audioLevel = 0.4
     }
 
     private func showErrorAlert(message: String) {

@@ -16,78 +16,119 @@ struct LoginView: View {
     @State private var errorMessage: String?
     @State private var animate = false
     @State private var isAnimating = false
+    @State private var showPassword = false
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                AppColors.background.ignoresSafeArea()
-                VStack(spacing: 30) {
-                    Text("STUDY.AI")
-                        .font(.custom("AvenirNext-UltraLight", size: 42))
-                        .foregroundColor(AppColors.text)
-                        .padding(.bottom, 20)
-                        .scaleEffect(animate ? 1 : 0.8)
-                        .opacity(animate ? 1 : 0)
-                    VStack(spacing: 25) {
-                        CustomTextField(
-                            text: $email,
-                            placeholder: "Email",
-                            systemImage: "envelope.fill"
-                        )
-                        CustomSecureField(
-                            text: $password,
-                            placeholder: "Password",
-                            systemImage: "lock.fill"
-                        )
-                        if let error = errorMessage {
-                            Text(error)
-                                .foregroundColor(.red)
-                                .font(.system(size: 14, weight: .medium))
-                                .multilineTextAlignment(.center)
-                                .padding(.top, -10)
+        ZStack {
+            AppColors.background.ignoresSafeArea()
+            VStack(spacing: 30) {
+                // Back button
+                HStack {
+                    Button(action: {
+                        appState.currentAuthFlow = .welcome
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .medium))
+                            Text("Back")
+                                .font(.system(size: 16, weight: .medium))
                         }
-                        Button("Forgot Password?") {
-                            // Optional reset flow
-                        }
-                        .font(.system(size: 14, weight: .medium))
                         .foregroundColor(AppColors.text.opacity(0.7))
-                        .frame(maxWidth: .infinity, alignment: .trailing)
                     }
-                    .padding(.horizontal, 25)
-                    Button(action: logIn) {
-                        Text("LOG IN")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(AppColors.text)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 55)
-                            .background(
-                                RoundedRectangle(cornerRadius: 15)
-                                    .fill(AppColors.card)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .stroke(AppColors.text.opacity(0.2), lineWidth: 1)
-                                    )
-                            )
-                            .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
-                    }
-                    .padding(.horizontal, 25)
-                    .scaleEffect(animate ? 1 : 0.9)
-                    HStack {
-                        Text("First time here?")
-                            .foregroundColor(AppColors.text.opacity(0.7))
-                        NavigationLink("Get Started", destination: SignupView())
-                            .foregroundColor(AppColors.accent)
-                            .font(.system(size: 16, weight: .bold))
-                    }
-                    .padding(.top, 20)
                     Spacer()
                 }
-                .padding(.top, 50)
-                .opacity(animate ? 1 : 0)
-                .offset(y: animate ? 0 : 20)
-                .animation(.easeOut(duration: 0.6), value: animate)
-                .onAppear { animate = true }
+                .padding(.horizontal, 25)
+                .padding(.top, 10)
+                // Logo Section
+                VStack(spacing: 10) {
+                    Image("AppLogo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 120, height: 120)
+                        .scaleEffect(animate ? 1 : 0.8)
+                        .opacity(animate ? 1 : 0)
+                }
+                .padding(.bottom, 20)
+                VStack(spacing: 25) {
+                    CustomTextField(
+                        text: $email,
+                        placeholder: "Email",
+                        systemImage: "envelope.fill"
+                    )
+                    HStack {
+                        Image(systemName: "lock.fill")
+                            .foregroundColor(.white.opacity(0.8))
+                            .frame(width: 20)
+                        if showPassword {
+                            TextField("Password", text: $password)
+                                .foregroundColor(.white)
+                                .autocapitalization(.none)
+                        } else {
+                            SecureField("Password", text: $password)
+                                .foregroundColor(.white)
+                        }
+                        Button(action: { showPassword.toggle() }) {
+                            Image(systemName: showPassword ? "eye.slash" : "eye")
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.15))
+                    .cornerRadius(15)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                    )
+                    if let error = errorMessage {
+                        Text(error)
+                            .foregroundColor(.red)
+                            .font(.system(size: 14, weight: .medium))
+                            .multilineTextAlignment(.center)
+                            .padding(.top, -10)
+                    }
+                    Button("Forgot Password?") {
+                        // Optional reset flow
+                    }
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AppColors.text.opacity(0.7))
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                .padding(.horizontal, 25)
+                Button(action: logIn) {
+                    Text("LOG IN")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(AppColors.text)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 55)
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(AppColors.card)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(AppColors.text.opacity(0.2), lineWidth: 1)
+                                )
+                        )
+                        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+                }
+                .padding(.horizontal, 25)
+                .scaleEffect(animate ? 1 : 0.9)
+                HStack {
+                    Text("First time here?")
+                        .foregroundColor(AppColors.text.opacity(0.7))
+                    Button("Get Started") {
+                        appState.currentAuthFlow = .signup
+                    }
+                    .foregroundColor(AppColors.accent)
+                    .font(.system(size: 16, weight: .bold))
+                }
+                .padding(.top, 20)
+                Spacer()
             }
+            .padding(.top, 50)
+            .opacity(animate ? 1 : 0)
+            .offset(y: animate ? 0 : 20)
+            .animation(.easeOut(duration: 0.6), value: animate)
+            .onAppear { animate = true }
         }
     }
     

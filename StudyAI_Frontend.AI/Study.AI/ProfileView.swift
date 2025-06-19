@@ -26,85 +26,130 @@ struct ProfileView: View {
     @State private var newPassword = ""
     @State private var confirmNewPassword = ""
 
+    @State private var isEditingUsername = false
+
     var body: some View {
         NavigationView {
             ZStack {
                 AppColors.background.ignoresSafeArea()
-                Form {
-                    Section {
-                        HStack {
-                            Spacer()
-                            Image(systemName: "person.circle.fill")
-                                .resizable()
-                                .frame(width: 80, height: 80)
-                                .foregroundColor(.blue)
-                                .padding(.vertical)
-                            Spacer()
-                        }
-                    }
-                    .listRowBackground(AppColors.card)
-                    Section(header: Text("Personal Info")
-                        .font(.custom("AvenirNext-UltraLight", size: 18))
-                        .foregroundColor(AppColors.text.opacity(0.8))) {
-                        TextField("First Name", text: $firstName)
-                            .foregroundColor(AppColors.text)
-                        TextField("Last Name", text: $lastName)
-                            .foregroundColor(AppColors.text)
-                        TextField("Username", text: $username)
-                            .foregroundColor(AppColors.text)
-                        TextField("Age", text: $age)
-                            .keyboardType(.numberPad)
-                            .foregroundColor(AppColors.text)
-                        Picker("Country", selection: $country) {
-                            ForEach(countryList, id: \.self) { c in
-                                Text(countryFlagEmoji(for: c) + " " + c).tag(c)
+                VStack(spacing: 0) {
+                    Form {
+                        Section {
+                            HStack {
+                                Spacer()
+                                Image(systemName: "person.circle.fill")
+                                    .resizable()
+                                    .frame(width: 80, height: 80)
+                                    .foregroundColor(.blue)
+                                    .padding(.vertical)
+                                Spacer()
                             }
                         }
-                        DatePicker("Date of Birth", selection: $birthDate, displayedComponents: .date)
-                    }
-                    .listRowBackground(AppColors.card)
-                    Section(header: Text("Account")
-                        .font(.custom("AvenirNext-UltraLight", size: 18))
-                        .foregroundColor(AppColors.text.opacity(0.8))) {
-                        Text(email).foregroundColor(.gray)
-                        Button("Reset Password") {
-                            resetPassword()
-                        }
-                    }
-                    .listRowBackground(AppColors.card)
-                    Section(header: Text("Change Password")
-                        .font(.custom("AvenirNext-UltraLight", size: 18))
-                        .foregroundColor(AppColors.text.opacity(0.8))) {
-                        SecureField("Current Password", text: $currentPassword)
-                            .foregroundColor(.gray)
-                        SecureField("New Password", text: $newPassword)
-                            .foregroundColor(.gray)
-                        SecureField("Confirm New Password", text: $confirmNewPassword)
-                            .foregroundColor(AppColors.text)
-                        Button("Update Password") {
-                            updatePassword()
-                        }
-                    }
-                    .listRowBackground(AppColors.card)
-                    if let error = errorMessage {
-                        Section {
-                            Text("❌ \(error)").foregroundColor(.red)
+                        .listRowBackground(AppColors.card)
+                        Section(header: Text("Personal Info")
+                            .font(.custom("AvenirNext-UltraLight", size: 18))
+                            .foregroundColor(AppColors.text.opacity(0.8))) {
+                            TextField("First Name", text: $firstName)
+                                .foregroundColor(AppColors.text)
+                                .disabled(true)
+                            TextField("Last Name", text: $lastName)
+                                .foregroundColor(AppColors.text)
+                                .disabled(true)
+                            HStack {
+                                if isEditingUsername {
+                                    TextField("Username", text: $username)
+                                        .foregroundColor(AppColors.text)
+                                    Button(action: {
+                                        confirmUsernameEdit()
+                                    }) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green)
+                                    }
+                                } else {
+                                    Text(username)
+                                        .foregroundColor(AppColors.text)
+                                    Button(action: {
+                                        isEditingUsername = true
+                                    }) {
+                                        Image(systemName: "pencil.circle")
+                                            .foregroundColor(AppColors.accent)
+                                    }
+                                }
+                            }
+                            HStack {
+                                Text("Country")
+                                    .foregroundColor(AppColors.text)
+                                Spacer()
+                                Text(countryFlagEmoji(for: country) + " " + country)
+                                    .foregroundColor(AppColors.text.opacity(0.7))
+                            }
+                            DatePicker("Date of Birth", selection: $birthDate, displayedComponents: .date)
+                                .accentColor(AppColors.accent)
+                                .colorScheme(.dark)
+                                .foregroundColor(AppColors.text)
+                                .disabled(true)
+                                .onChange(of: birthDate) { newValue in
+                                    birthDate = Calendar.current.startOfDay(for: newValue)
+                                }
                         }
                         .listRowBackground(AppColors.card)
-                    }
-                    if let message = successMessage {
-                        Section {
-                            Text("✅ \(message)").foregroundColor(.green)
+                        Section(header: Text("Account")
+                            .font(.custom("AvenirNext-UltraLight", size: 18))
+                            .foregroundColor(AppColors.text.opacity(0.8))) {
+                            Text(email).foregroundColor(AppColors.text.opacity(0.7))
+                            Button("Reset Password") {
+                                resetPassword()
+                            }
+                            .foregroundColor(AppColors.accent)
                         }
                         .listRowBackground(AppColors.card)
+                        Section(header: Text("Change Password")
+                            .font(.custom("AvenirNext-UltraLight", size: 18))
+                            .foregroundColor(AppColors.text.opacity(0.8))) {
+                            SecureField("Current Password", text: $currentPassword)
+                                .textContentType(.password)
+                                .foregroundColor(AppColors.text)
+                                .placeholder(when: currentPassword.isEmpty) {
+                                    Text("Current Password").foregroundColor(AppColors.text.opacity(0.5))
+                                }
+                            SecureField("New Password", text: $newPassword)
+                                .textContentType(.newPassword)
+                                .foregroundColor(AppColors.text)
+                                .placeholder(when: newPassword.isEmpty) {
+                                    Text("New Password").foregroundColor(AppColors.text.opacity(0.5))
+                                }
+                            SecureField("Confirm New Password", text: $confirmNewPassword)
+                                .textContentType(.newPassword)
+                                .foregroundColor(AppColors.text)
+                                .placeholder(when: confirmNewPassword.isEmpty) {
+                                    Text("Confirm New Password").foregroundColor(AppColors.text.opacity(0.5))
+                                }
+                            Button("Update Password") {
+                                updatePassword()
+                            }
+                            .foregroundColor(AppColors.accent)
+                        }
+                        .listRowBackground(AppColors.card)
+                        if let error = errorMessage {
+                            Section {
+                                Text("❌ \(error)").foregroundColor(.red)
+                            }
+                            .listRowBackground(AppColors.card)
+                        }
+                        if let message = successMessage {
+                            Section {
+                                Text("✅ \(message)").foregroundColor(.green)
+                            }
+                            .listRowBackground(AppColors.card)
+                        }
                     }
-                    Button("Save Changes") {
-                        saveProfile()
-                    }
-                    .listRowBackground(AppColors.card)
+                    .background(AppColors.background)
+                    .scrollContentBackground(.hidden)
+                    .accentColor(AppColors.accent)
+                    .tint(AppColors.accent)
+                    .frame(maxWidth: 700)
+                    .padding(.horizontal, 0)
                 }
-                .background(AppColors.background)
-                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
@@ -130,11 +175,11 @@ struct ProfileView: View {
                 self.firstName = data["firstName"] as? String ?? ""
                 self.lastName = data["lastName"] as? String ?? ""
                 self.username = data["username"] as? String ?? ""
-                self.age = String(data["age"] as? Int ?? 0)
                 self.country = data["country"] as? String ?? "United States"
                 self.email = data["email"] as? String ?? ""
                 if let dob = data["dateOfBirth"] as? Timestamp {
-                    self.birthDate = dob.dateValue()
+                    let date = dob.dateValue()
+                    self.birthDate = Calendar.current.startOfDay(for: date)
                 }
                 self.isLoading = false
             } else {
@@ -152,9 +197,8 @@ struct ProfileView: View {
             "firstName": firstName,
             "lastName": lastName,
             "username": username,
-            "age": Int(age) ?? 0,
-            "country": country,
             "dateOfBirth": Timestamp(date: birthDate)
+            // Note: country is not included as it's now unchangeable
         ]
 
         Firestore.firestore().collection("users").document(uid).updateData(updatedData) { error in
@@ -229,5 +273,38 @@ struct ProfileView: View {
             emoji.unicodeScalars.append(UnicodeScalar(base + scalar.value)!)
         }
         return emoji
+    }
+
+    private func confirmUsernameEdit() {
+        guard !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        Firestore.firestore().collection("users").document(uid).updateData(["username": username]) { error in
+            if let error = error {
+                self.errorMessage = error.localizedDescription
+            } else {
+                self.successMessage = "Username updated successfully."
+                self.appState.username = username
+                self.isEditingUsername = false
+            }
+        }
+    }
+
+    private func calculateAge(from date: Date) -> Int {
+        let calendar = Calendar.current
+        let now = Date()
+        let ageComponents = calendar.dateComponents([.year], from: date, to: now)
+        return ageComponents.year ?? 0
+    }
+}
+
+extension View {
+    func placeholder<Content: View>(
+        when shouldShow: Bool,
+        alignment: Alignment = .leading,
+        @ViewBuilder placeholder: () -> Content) -> some View {
+        ZStack(alignment: alignment) {
+            placeholder().opacity(shouldShow ? 1 : 0)
+            self
+        }
     }
 }

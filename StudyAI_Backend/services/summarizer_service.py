@@ -121,57 +121,78 @@ class SummarizerService:
         bullet_points: bool | None = None,
     ) -> str:
 
+        print("\n[DEBUG] Raw extracted text (first 500 chars):\n", text[:500])
         text = self._clean(self._strip_prompt(text))
+        print("[DEBUG] Cleaned input text (first 500 chars):\n", text[:500])
         if not text:
+            print("[DEBUG] Cleaned text is empty after cleaning.")
             return "No content."
         if len(text.split()) < 10:
+            print("[DEBUG] Cleaned text too short after cleaning.")
             return "Content too short or invalid after cleaning."
 
-        chunks = self._chunk(text)
-        orig_words = len(text.split())
+        # SECTION-AWARE SPLITTING
+        # Split on lines that look like section headings (title case, all caps, or surrounded by whitespace)
+        section_pattern = re.compile(r"(?:^|\n)([A-Z][A-Za-z0-9\- ]{3,40})(?:\n|$)")
+        sections = []
+        last_idx = 0
+        for match in section_pattern.finditer(text):
+            start = match.start(1)
+            if last_idx < start:
+                section_text = text[last_idx:start].strip()
+                if section_text:
+                    sections.append(section_text)
+            last_idx = start
+        # Add the last section
+        if last_idx < len(text):
+            section_text = text[last_idx:].strip()
+            if section_text:
+                sections.append(section_text)
+        # If no sections found, treat the whole text as one section
+        if not sections:
+            sections = [text]
+        print(f"[DEBUG] Detected {len(sections)} sections for summarization.")
 
-        tgt_words = [max(30, int(len(c.split()) * OUTPUT_RATIO)) for c in chunks]
-        max_tok = [min(1000, int(w * TOKEN_SCALE)) for w in tgt_words]
-        min_tok = [int(mx * 0.60) for mx in max_tok]
-
+        # Summarize each section individually
         loop = asyncio.get_running_loop()
-
-        def _generate() -> List[str]:
+        def summarize_section(section):
+            # Use the same summarization logic as before, but on the section
+            chunks = self._chunk(section)
+            tgt_words = [max(30, int(len(c.split()) * OUTPUT_RATIO)) for c in chunks]
+            max_tok = [min(1000, int(w * TOKEN_SCALE)) for w in tgt_words]
+            min_tok = [int(mx * 0.60) for mx in max_tok]
             out = []
             for chunk, mx, mn in zip(chunks, max_tok, min_tok):
                 res = self.pipe(PROMPT + chunk, max_length=mx, min_length=mn, truncation=True)[0]["summary_text"]
                 out.append(self._ensure_period(self._clean(res)))
-            return out
-
-        partials = await loop.run_in_executor(None, _generate)
-        summary = self._ensure_period(" ".join(partials))
+            return " ".join(out)
+        section_summaries = await asyncio.gather(*[loop.run_in_executor(None, summarize_section, sec) for sec in sections])
+        summary = " ".join(section_summaries)
 
         summary = re.sub(r'for confidential support.*', '', summary, flags=re.I | re.S)
         summary = re.sub(r'(http|www\.)\S+', '', summary)
         summary = re.sub(r'@\w+', '', summary)
         summary = re.sub(r'(click here|follow us|back to|prize|winner|submit|feature).*', '', summary, flags=re.I)
         summary = re.sub(r'\s{2,}', ' ', summary).strip()
-
+        # Remove repeated prompt instructions at the end
+        summary = re.sub(
+            r"(write an academic abstract.*?in a scholarly tone:.*?)+", "", summary, flags=re.I | re.S
+        )
+        summary = re.sub(
+            r"(write an academic abstract.*?in a academic tone:.*?)+", "", summary, flags=re.I | re.S
+        )
+        summary = re.sub(r"authors say\.\.", "authors say.", summary)
+        # Remove any trailing incomplete sentences or meta lines
+        summary = re.sub(r"([.?!])[^.?!]*$", r"\1", summary)
+        summary = summary.strip()
+        if not summary.endswith('.'):
+            summary += '.'
+        print("[DEBUG] Final section-aware summary (first 500 chars):\n", summary[:500])
+        # Fallback: if summary is too short, return first 3 sentences of cleaned input
         if len(summary.split()) < 20:
-            return "Generated summary was too short or invalid. Please try again with different content."
-
-        if len(summary.split()) > int(orig_words * SECOND_PASS_RATIO):
-            mx = int(max(max_tok) * 0.60)
-            mn = int(min(min_tok) * 0.60)
-            summary = self.pipe(summary, max_length=mx, min_length=mn, truncation=True)[0]["summary_text"]
-            summary = self._ensure_period(self._clean(summary))
-
-        if academic:
-            bullet_points = False
-        elif bullet_points is None:
-            bullet_points = len(summary.split()) > 120
-
-        if bullet_points:
-            lines = [l.strip() for l in re.split(r"[.\n]", summary) if l.strip()]
-            summary = "\n".join(f"• {l}" for l in dict.fromkeys(lines))
-        else:
-            summary = self._ensure_period(summary)
-            if academic:
-                summary = "Abstract — " + summary[0].upper() + summary[1:]
-
+            print("[DEBUG] Section-aware summary too short after all processing. Returning fallback.")
+            fallback = '. '.join(text.split('. ')[:3]).strip()
+            if not fallback.endswith('.'):
+                fallback += '.'
+            return fallback or "Summary could not be generated."
         return summary

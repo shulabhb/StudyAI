@@ -73,6 +73,8 @@ struct ScanView: View {
     @State private var showTitlePrompt = false
     @State private var errorMessage: String? = nil
     @State private var showErrorAlert = false
+    @State private var isSummarizing = false
+    @State private var progressText = "Summarizing..."
 
     var body: some View {
         ZStack {
@@ -136,12 +138,23 @@ struct ScanView: View {
             .alert(isPresented: $showErrorAlert) {
                 Alert(title: Text("Error"), message: Text(errorMessage ?? "Unknown error"), dismissButton: .default(Text("OK")))
             }
+            if isSummarizing {
+                Color.black.opacity(0.35).ignoresSafeArea()
+                Text(progressText)
+                    .font(.title2.bold())
+                    .foregroundColor(AppColors.accent)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            }
         }
     }
 
     private func uploadRawPDF(url: URL) {
         isUploading = true
         uploadSuccess = false
+        errorMessage = nil
+        showErrorAlert = false
+        progressText = "Reading PDF..."
+        isSummarizing = true
 
         guard let userID = Auth.auth().currentUser?.uid else {
             showErrorAlert(message: "Not logged in.")
@@ -153,56 +166,100 @@ struct ScanView: View {
             isUploading = false
             return
         }
+        // PDFKit text extraction and validation
+        if let pdfDoc = PDFDocument(url: url) {
+            var extractedText = ""
+            for i in 0..<pdfDoc.pageCount {
+                if let page = pdfDoc.page(at: i) {
+                    extractedText += page.string ?? ""
+                }
+            }
+            let charCount = extractedText.trimmingCharacters(in: .whitespacesAndNewlines).count
+            if charCount < 300 {
+                showErrorAlert(message: "Insufficient words in the PDF. Please upload a PDF with at least 300 characters of text.")
+                isUploading = false
+                return
+            }
+        } else {
+            showErrorAlert(message: "Failed to parse PDF for text extraction.")
+            isUploading = false
+            return
+        }
 
         let boundary = UUID().uuidString
         var request = URLRequest(url: URL(string: "\(APIConfig.baseURL)/upload_pdf")!)
         request.httpMethod = "POST"
-        request.setValue("multipart/form-data; boundary=\(boundary)",
-                         forHTTPHeaderField: "Content-Type")
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
         var body = Data()
         body.appendFormField(named: "user_id", value: userID, using: boundary)
         body.appendFormField(named: "title", value: noteTitle, using: boundary)
-
-        // file data
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"file\"; filename=\"note.pdf\"\r\n".data(using: .utf8)!)
         body.append("Content-Type: application/pdf\r\n\r\n".data(using: .utf8)!)
         body.append(pdfData)
         body.append("\r\n".data(using: .utf8)!)
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-
         request.httpBody = body
 
-        URLSession.shared.dataTask(with: request) { data, _, error in
+        URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async { isUploading = false }
 
             if let error = error {
                 showErrorAlert(message: "Upload failed: \(error.localizedDescription)")
                 return
             }
+
             guard let data = data else {
                 showErrorAlert(message: "No data returned from server.")
                 return
             }
 
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("Raw response: \(responseString)")
+            }
+
             do {
-                let decoded = try JSONDecoder().decode([String: String].self, from: data)
-                guard let summaryId = decoded["summary_id"] else {
-                    showErrorAlert(message: "Missing summary ID in response JSON.")
+                let decoded = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                if let errorMessage = decoded?["error"] as? String {
+                    showErrorAlert(message: errorMessage)
                     return
                 }
-                // switch to Summaries tab and pop back
-                DispatchQueue.main.async {
-                    appState.newSummaryId = summaryId
-                    appState.selectedTab = .summaries
-                    uploadSuccess = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                        presentationMode.wrappedValue.dismiss()
+                if let warningMessage = decoded?["warning"] as? String {
+                    print("Warning: \(warningMessage)")
+                }
+                guard let summaryId = decoded?["summary_id"] as? String else {
+                    showErrorAlert(message: "Missing summary ID in response.")
+                    return
+                }
+                // Only show success if backend says so
+                if let success = decoded?["success"] as? Bool, success {
+                    DispatchQueue.main.async {
+                        errorMessage = nil
+                        showErrorAlert = false
+                        appState.newSummaryId = summaryId
+                        appState.selectedTab = .summaries
+                        uploadSuccess = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                            presentationMode.wrappedValue.dismiss()
+                        }
                     }
+                } else {
+                    showErrorAlert(message: "Unknown error occurred.")
                 }
             } catch {
-                showErrorAlert(message: "JSON decoding error: \(error.localizedDescription)")
+                if let responseString = String(data: data, encoding: .utf8) {
+                    showErrorAlert(message: "JSON decoding error: \(error.localizedDescription)\nResponse: \(responseString)")
+                } else {
+                    showErrorAlert(message: "JSON decoding error: \(error.localizedDescription)")
+                }
+            }
+            DispatchQueue.main.async {
+                progressText = "Summarizing..."
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                    progressText = "Preparing summary..."
+                }
+                isSummarizing = false
             }
         }.resume()
     }

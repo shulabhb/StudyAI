@@ -18,6 +18,7 @@ from fastapi import (
     Request,
     UploadFile,
 )
+from fastapi.middleware.cors import CORSMiddleware
 from models.note import NoteRequest
 from services.summarizer_service import SummarizerService
 from services.parser import extract_text_from_image
@@ -30,6 +31,14 @@ ensure_google_credentials()
 
 app = FastAPI()
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 async def load_model() -> None:
@@ -47,13 +56,13 @@ async def _process_and_save(
     summary_type: str,
 ) -> Dict[str, Any]:
     if not content.strip():
-        return {"error": "Content is empty."}
+        return {"error": "Content is empty.", "success": False}
 
     svc: SummarizerService = request.app.state.summarizer
     summary = await svc.summarize(content, academic=True)
 
     if len(summary.strip()) < 10:
-        return {"error": "Summary too short – probably invalid input."}
+        return {"error": "Summary too short – probably invalid input.", "success": False}
 
     save_res = save_note_to_firestore(
         user_id=user_id,
@@ -63,10 +72,21 @@ async def _process_and_save(
         source=source,
         summary_type=summary_type,
     )
+    
     if not save_res["success"]:
-        return {"warning": "Note already existed.", **save_res}
+        return {
+            "warning": "Note already existed.", 
+            "success": False,
+            "summary_id": save_res.get("summary_id", ""),
+            "note_id": save_res.get("note_id", "")
+        }
 
-    return {"summary": summary, "summary_id": save_res.get("summary_id"), **save_res}
+    return {
+        "summary": summary, 
+        "summary_id": save_res.get("summary_id", ""), 
+        "note_id": save_res.get("note_id", ""),
+        "success": True
+    }
 
 
 # ---------- routes ---------- #
@@ -113,12 +133,19 @@ async def upload_pdf(
     title: str = Form(...),
     summary_type: str = Form("detailed"),
 ):
+    print(f"📄 PDF upload request: user_id={user_id}, title={title}, filename={file.filename}")
+    
     pdf_bytes = await file.read()
+    print(f"📄 Read {len(pdf_bytes)} bytes from uploaded file")
+    
     extracted = extract_text_from_pdf(pdf_bytes)
     if not extracted.strip():
-        return {"error": "No text found in PDF."}
+        print("❌ No text extracted from PDF")
+        return {"error": "No text found in PDF.", "success": False}
 
-    return await _process_and_save(
+    print(f"✅ Extracted {len(extracted)} characters from PDF")
+    
+    result = await _process_and_save(
         request=request,
         content=extracted,
         user_id=user_id,
@@ -126,6 +153,9 @@ async def upload_pdf(
         source="pdf",
         summary_type=summary_type,
     )
+    
+    print(f"📄 PDF processing result: {result}")
+    return result
 
 
 @app.post("/upload_images")

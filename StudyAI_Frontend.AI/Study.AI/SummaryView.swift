@@ -30,46 +30,119 @@ struct SummaryDetailView: View {
     let note: Note?
     @State private var showShareSheet = false
     @State private var showCopyAlert = false
+    @State private var pdfToShare: Data? = nil
+    @State private var exportingSummary = false
+    @State private var exportingNote = false
+    @State private var isEditingTitle = false
+    @State private var editedTitle = ""
+    @State private var showSaveAlert = false
+    @State private var saveAlertMessage = ""
+    
     var body: some View {
         ZStack {
             AppColors.background.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    Text(summary.title ?? note?.title ?? "Untitled")
-                        .font(.custom("AvenirNext-UltraLight", size: 28))
-                        .foregroundColor(AppColors.text)
-                        .padding(.bottom, 8)
-                    Text(summary.summary)
-                        .foregroundColor(AppColors.text)
-                        .font(.system(size: 17))
-                        .padding()
-                        .background(AppColors.card)
-                        .cornerRadius(12)
-                        .contextMenu {
-                            Button("Copy Summary") {
+                    HStack {
+                        if isEditingTitle {
+                            TextField("Enter title", text: $editedTitle)
+                                .font(.custom("AvenirNext-UltraLight", size: 28))
+                                .foregroundColor(AppColors.text)
+                                .textFieldStyle(PlainTextFieldStyle())
+                                .onSubmit {
+                                    saveTitle()
+                                }
+                        } else {
+                            Text(summary.title ?? note?.title ?? "Untitled")
+                                .font(.custom("AvenirNext-UltraLight", size: 28))
+                                .foregroundColor(AppColors.text)
+                        }
+                        Spacer()
+                        Button(action: {
+                            if isEditingTitle {
+                                saveTitle()
+                            } else {
+                                startEditing()
+                            }
+                        }) {
+                            Image(systemName: isEditingTitle ? "checkmark.circle.fill" : "pencil.circle")
+                                .font(.system(size: 24))
+                                .foregroundColor(isEditingTitle ? .green : AppColors.accent)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    // Summary Section
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Summary")
+                                .font(.headline)
+                                .foregroundColor(AppColors.text)
+                            Spacer()
+                            Button(action: {
                                 UIPasteboard.general.string = summary.summary
                                 showCopyAlert = true
+                            }) {
+                                Image(systemName: "doc.on.doc")
+                                    .foregroundColor(AppColors.accent)
                             }
-                            Button("Share as PDF") {
-                                showShareSheet = true
-                            }
-                        }
-                    if let note = note {
-                        DisclosureGroup("Show Original Note") {
-                            Text(note.content)
-                                .foregroundColor(AppColors.text)
-                                .padding()
-                                .background(AppColors.card)
-                                .cornerRadius(12)
-                                .contextMenu {
-                                    Button("Copy Note") {
-                                        UIPasteboard.general.string = note.content
-                                        showCopyAlert = true
-                                    }
+                            .buttonStyle(.plain)
+                            Button(action: {
+                                if let pdfData = generatePDF(from: summary.summary, title: summary.title ?? note?.title ?? "Summary") {
+                                    pdfToShare = pdfData
+                                    exportingSummary = true
+                                    showShareSheet = true
                                 }
+                            }) {
+                                Image(systemName: "square.and.arrow.up")
+                                    .foregroundColor(AppColors.accent)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .accentColor(AppColors.accent)
-                        .padding(.top, 12)
+                        Text(summary.summary)
+                            .foregroundColor(AppColors.text)
+                            .font(.system(size: 17))
+                            .padding()
+                            .background(AppColors.card)
+                            .cornerRadius(12)
+                    }
+                    // Note Section
+                    if let note = note {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Original Note")
+                                    .font(.headline)
+                                    .foregroundColor(AppColors.text)
+                                Spacer()
+                                Button(action: {
+                                    UIPasteboard.general.string = note.content
+                                    showCopyAlert = true
+                                }) {
+                                    Image(systemName: "doc.on.doc")
+                                        .foregroundColor(AppColors.accent)
+                                }
+                                .buttonStyle(.plain)
+                                Button(action: {
+                                    if let pdfData = generatePDF(from: note.content, title: note.title) {
+                                        pdfToShare = pdfData
+                                        exportingNote = true
+                                        showShareSheet = true
+                                    }
+                                }) {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .foregroundColor(AppColors.accent)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            DisclosureGroup("Show Original Note") {
+                                Text(note.content)
+                                    .foregroundColor(AppColors.text)
+                                    .padding()
+                                    .background(AppColors.card)
+                                    .cornerRadius(12)
+                            }
+                            .accentColor(AppColors.accent)
+                            .padding(.top, 4)
+                        }
                     }
                 }
                 .padding()
@@ -77,7 +150,73 @@ struct SummaryDetailView: View {
             .alert(isPresented: $showCopyAlert) {
                 Alert(title: Text("Copied!"), message: nil, dismissButton: .default(Text("OK")))
             }
-            // Add share sheet logic if needed
+            .alert("Title Updated", isPresented: $showSaveAlert) {
+                Button("OK") { }
+            } message: {
+                Text(saveAlertMessage)
+            }
+            .sheet(isPresented: $showShareSheet, onDismiss: {
+                exportingSummary = false
+                exportingNote = false
+                pdfToShare = nil
+            }) {
+                if let pdfData = pdfToShare {
+                    ShareSheet(activityItems: [pdfData])
+                }
+            }
+        }
+    }
+    // Helper to generate PDF from text
+    private func generatePDF(from text: String, title: String?) -> Data? {
+        let pdfMetaData = [
+            kCGPDFContextCreator: "Study.AI",
+            kCGPDFContextAuthor: "Study.AI User",
+            kCGPDFContextTitle: title ?? "Exported Note"
+        ]
+        let format = UIGraphicsPDFRendererFormat()
+        format.documentInfo = pdfMetaData as [String: Any]
+        let pageWidth = 595.2
+        let pageHeight = 841.8
+        let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight), format: format)
+        let data = renderer.pdfData { ctx in
+            ctx.beginPage()
+            let textRect = CGRect(x: 32, y: 32, width: pageWidth - 64, height: pageHeight - 64)
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.lineBreakMode = .byWordWrapping
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 14),
+                .paragraphStyle: paragraphStyle
+            ]
+            text.draw(in: textRect, withAttributes: attrs)
+        }
+        return data
+    }
+    
+    // MARK: - Title Editing Functions
+    private func startEditing() {
+        editedTitle = summary.title ?? note?.title ?? "Untitled"
+        isEditingTitle = true
+    }
+    
+    private func saveTitle() {
+        guard !editedTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            saveAlertMessage = "Title cannot be empty"
+            showSaveAlert = true
+            return
+        }
+        
+        // Update the summary title in Firestore
+        SummaryService.updateSummaryTitle(summaryId: summary.id, newTitle: editedTitle.trimmingCharacters(in: .whitespacesAndNewlines)) { success in
+            DispatchQueue.main.async {
+                if success {
+                    saveAlertMessage = "Title updated successfully!"
+                    showSaveAlert = true
+                    isEditingTitle = false
+                } else {
+                    saveAlertMessage = "Failed to update title. Please try again."
+                    showSaveAlert = true
+                }
+            }
         }
     }
 }
@@ -194,14 +333,13 @@ struct SummaryView: View {
 
     // MARK: - Deletion (calls backend, not Firestore directly!)
     private func deleteSummary(at offsets: IndexSet) {
-        guard !isDeleting else { return }
-        isDeleting = true
-        offsets.forEach { index in
-            let summary = summaries[index]
-            SummaryService.deleteSummaryViaBackend(summaryId: summary.id) { _ in
-                DispatchQueue.main.async {
-                    isDeleting = false
-                }
+        let idsToDelete = offsets.map { summaries[$0].id }
+        // Remove from UI immediately
+        summaries.remove(atOffsets: offsets)
+        // Call backend for each summary
+        for id in idsToDelete {
+            SummaryService.deleteSummaryViaBackend(summaryId: id) { _ in
+                // Optionally handle errors here
             }
         }
     }

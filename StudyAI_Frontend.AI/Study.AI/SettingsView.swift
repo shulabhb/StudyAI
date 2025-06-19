@@ -11,6 +11,7 @@ import FirebaseAuth
 
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
+    @State private var showLogoutAlert = false
 
     var body: some View {
         NavigationView {
@@ -23,7 +24,7 @@ struct SettingsView: View {
                         NavigationLink("Profile", destination: ProfileView())
                             .foregroundColor(AppColors.text)
                         Button("Log Out", role: .destructive) {
-                            logOut()
+                            showLogoutAlert = true
                         }
                     }
                     .listRowBackground(AppColors.card)
@@ -37,6 +38,8 @@ struct SettingsView: View {
                 }
                 .background(AppColors.background)
                 .scrollContentBackground(.hidden)
+                .accentColor(AppColors.accent)
+                .tint(AppColors.accent)
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -48,12 +51,19 @@ struct SettingsView: View {
                 }
             }
         }
+        .alert("Are you sure you want to log out?", isPresented: $showLogoutAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Log Out", role: .destructive) {
+                logOut()
+            }
+        }
     }
 
     private func logOut() {
         do {
             try Auth.auth().signOut()
             appState.isLoggedIn = false
+            appState.currentAuthFlow = .welcome
         } catch {
             print("❌ Logout error: \(error.localizedDescription)")
         }

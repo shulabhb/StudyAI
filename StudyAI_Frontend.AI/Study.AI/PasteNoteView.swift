@@ -21,15 +21,22 @@ struct PasteNoteView: View {
                     Text("TITLE")
                         .foregroundColor(AppColors.text.opacity(0.7))
                         .font(.caption)
-                    TextField("Enter title", text: $noteTitle)
-                        .padding(12)
-                        .background(AppColors.card)
-                        .foregroundColor(.white)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.white.opacity(0.7), lineWidth: 1)
-                        )
-                        .cornerRadius(10)
+                    ZStack(alignment: .leading) {
+                        if noteTitle.isEmpty {
+                            Text("Enter title")
+                                .foregroundColor(.white.opacity(0.7))
+                                .padding(.leading, 16)
+                        }
+                        TextField("", text: $noteTitle)
+                            .padding(12)
+                            .background(AppColors.card)
+                            .foregroundColor(.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.white.opacity(0.7), lineWidth: 1)
+                            )
+                            .cornerRadius(10)
+                    }
                 }
                 VStack(alignment: .leading, spacing: 12) {
                     Text("PASTE YOUR NOTE HERE")
@@ -46,6 +53,20 @@ struct PasteNoteView: View {
                             .scrollContentBackground(.hidden)
                             .frame(minHeight: 200)
                     }
+                    
+                    // Word count display
+                    HStack {
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text("\(noteContent.count) characters")
+                                .font(.caption)
+                                .foregroundColor(AppColors.text.opacity(0.6))
+                            Text("\(noteContent.split(separator: " ").count) words")
+                                .font(.caption)
+                                .foregroundColor(AppColors.text.opacity(0.6))
+                        }
+                    }
+                    .padding(.top, 4)
                 }
                 if let message = successMessage {
                     Text("✅ \(message)").foregroundColor(.green)
@@ -53,20 +74,28 @@ struct PasteNoteView: View {
                 if let error = errorMessage {
                     Text("❌ \(error)").foregroundColor(.red)
                 }
-                Button(action: summarizeAndSave) {
-                    if isSummarizing {
-                        ProgressView("Summarizing...")
-                    } else {
+                if !isSummarizing {
+                    Button(action: summarizeAndSave) {
                         Text("Save & Summarize")
                             .frame(maxWidth: .infinity)
                     }
+                    .padding(.top, 8)
+                    .padding(.horizontal)
+                    .frame(height: 50)
+                    .background(AppColors.card)
+                    .foregroundColor(AppColors.accent)
+                    .cornerRadius(12)
                 }
-                .padding(.top, 8)
-                .padding(.horizontal)
-                .frame(height: 50)
-                .background(AppColors.card)
-                .foregroundColor(AppColors.accent)
-                .cornerRadius(12)
+
+                // Centered overlay for summarizing
+                if isSummarizing {
+                    ZStack {
+                        AppColors.background.opacity(0.85).ignoresSafeArea()
+                        Text("Summarizing...")
+                            .font(.title2.bold())
+                            .foregroundColor(AppColors.accent)
+                    }
+                }
             }
             .padding(.horizontal, 18)
             .padding(.top, 24)
@@ -88,6 +117,11 @@ struct PasteNoteView: View {
     private func summarizeAndSave() {
         guard !noteTitle.isEmpty, !noteContent.isEmpty else {
             showErrorAlert(message: "Title and content can't be empty.")
+            return
+        }
+        let charCount = noteContent.count
+        if charCount < 300 {
+            showErrorAlert(message: "Note is too short. Please enter at least 300 characters.")
             return
         }
         isSummarizing = true

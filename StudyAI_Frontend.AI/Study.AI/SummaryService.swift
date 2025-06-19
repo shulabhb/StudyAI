@@ -90,4 +90,30 @@ class SummaryService {
                 completion(summaries)
             }
     }
+    
+    // MARK: - Update summary title
+    static func updateSummaryTitle(summaryId: String, newTitle: String, completion: @escaping (Bool) -> Void) {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            print("❌ User not logged in")
+            completion(false)
+            return
+        }
+        
+        Firestore.firestore()
+            .collection("users")
+            .document(userId)
+            .collection("summaries")
+            .document(summaryId)
+            .updateData([
+                "title": newTitle
+            ]) { error in
+                if let error = error {
+                    print("❌ Firestore update error (summary title): \(error)")
+                    completion(false)
+                } else {
+                    print("✅ Summary title updated successfully")
+                    completion(true)
+                }
+            }
+    }
 }
