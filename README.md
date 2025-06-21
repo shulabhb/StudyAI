@@ -56,33 +56,38 @@ StudyAI is an intelligent, modular iOS study assistant that helps students organ
 ## 📱 Demo Preview
 
 ### Authentication & Onboarding
-<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.10.png" width="200" alt="Login Screen">
+<div align="center">
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.10.png" width="250" alt="Login Screen">
 
-
-<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.37.png" width="200" alt="Welcome Screen">
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.37.png" width="250" alt="Welcome Screen">
 *Welcome screen *
+</div>
 
 ### Flashcard Creation View
-<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.30.10.png" width="200" alt="Dashboard Home">
+<div align="center">
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.30.10.png" width="250" alt="Dashboard Home">
 *Main dashboard with quick access to all features: paste notes, scan PDFs, record voice, and flashcards*
+</div>
 
 ### Example Flashcard
-<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.50.png" width="200" alt="Paste Note Interface">
+<div align="center">
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.50.png" width="250" alt="Paste Note Interface">
 
-
-<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.52.png" width="200" alt="Voice Recording">
-
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.52.png" width="250" alt="Voice Recording">
+</div>
 
 ### Import and extract notes from pdfs to be summarized
-<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.08.png" width="200" alt="Flashcard Generator">
-
-
-<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.27.png" width="200" alt="Flashcard Review">
-*Manual type note feature*
+<div align="center">
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.08.png" width="250" alt="Flashcard Generator">
+</div>
 
 ### Live Voice Notes View
-<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.37.07.png" width="200" alt="Summaries List">
+<div align="center">
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.27.png" width="250" alt="Flashcard Review">
+*Manual type note feature*
 
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.37.07.png" width="250" alt="Summaries List">
+</div>
 
 ---
 
