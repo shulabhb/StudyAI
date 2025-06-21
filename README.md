@@ -57,36 +57,36 @@ StudyAI is an intelligent, modular iOS study assistant that helps students organ
 
 ### Authentication & Onboarding
 
-![Login Screen](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.10.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.10.png" width="400" alt="Login Screen">
 *Login screen with email and password fields*
 
-![Welcome Screen](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.37.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.37.png" width="400" alt="Welcome Screen">
 *Welcome screen with app introduction*
 
 ### Main Dashboard
 
-![Dashboard Home](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.30.10.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.30.10.png" width="400" alt="Dashboard Home">
 *Main dashboard with quick access to all features: paste notes, scan PDFs, record voice, and flashcards*
 
 ### Note Creation Features
 
-![Paste Note Interface](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.50.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.50.png" width="400" alt="Paste Note Interface">
 *Paste and process notes interface*
 
-![Voice Recording](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.52.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.52.png" width="400" alt="Voice Recording">
 *Voice recording and transcription feature*
 
 ### PDF Processing
 
-![PDF Import](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.08.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.08.png" width="400" alt="PDF Import">
 *Import and extract notes from PDFs to be summarized*
 
 ### Study Features
 
-![Manual Note Entry](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.27.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.27.png" width="400" alt="Manual Note Entry">
 *Manual type note feature*
 
-![Summaries List](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.37.07.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.37.07.png" width="400" alt="Summaries List">
 *View and manage your study summaries*
 
 ---
