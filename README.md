@@ -366,13 +366,13 @@ users/{userId}/flashcardSets/{setId}
 
 ---
 
-## 🤝 Contributing
+## Contributing
 Feel free to fork the repo, make improvements, and submit a pull request. Contributions are welcome!
 
-## 📜 License
+## License
 This project is under the MIT License.
 
-## 🙋‍♂️ Author
+## Author
 Shulabh Bhattarai
 
 
