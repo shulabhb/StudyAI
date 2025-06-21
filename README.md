@@ -58,36 +58,37 @@ StudyAI is an intelligent, modular iOS study assistant that helps students organ
 ### Authentication & Onboarding
 
 <img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.10-v2.png" width="400" alt="Login Screen">
-*Login screen with email and password fields*
-
-<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.37-v2.png" width="400" alt="Welcome Screen">
-*Welcome screen with app introduction*
 
 ### Main Dashboard
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.37-v2.png" width="400" alt="Welcome Screen">
+
+
+### Flashcard generator View
 
 <img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.30.10-v2.png" width="400" alt="Dashboard Home">
-*Main dashboard with quick access to all features: paste notes, scan PDFs, record voice, and flashcards*
 
-### Note Creation Features
+
+### Flashcards example
 
 <img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.50-v2.png" width="400" alt="Paste Note Interface">
-*Paste and process notes interface*
+
 
 <img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.52-v2.png" width="400" alt="Voice Recording">
-*Voice recording and transcription feature*
+
 
 ### PDF Processing
 
 <img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.08-v2.png" width="400" alt="PDF Import">
 *Import and extract notes from PDFs to be summarized*
 
-### Study Features
+### Manual Note Taking Features
 
 <img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.27-v2.png" width="400" alt="Manual Note Entry">
-*Manual type note feature*
+
+*Voice recording and transcription feature*
 
 <img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.37.07-v2.png" width="400" alt="Summaries List">
-*View and manage your study summaries*
+
 
 ---
 
