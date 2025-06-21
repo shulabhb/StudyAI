@@ -4,7 +4,7 @@ StudyAI is an intelligent, modular iOS study assistant that helps students organ
 
 ---
 
-##  Features
+## ✨ Features
 
 -  **Dashboard Home**  
   Central hub for navigation to all major features: paste note, scan PDF, record voice, flashcards, and more.
@@ -53,6 +53,39 @@ StudyAI is an intelligent, modular iOS study assistant that helps students organ
 
 ---
 
+## 📱 Demo Preview
+
+### Authentication & Onboarding
+![Login Screen](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.10.png)
+*Clean login interface with email/password authentication and Firebase integration*
+
+![Welcome Screen](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.37.png)
+*Welcome screen with animated background and navigation to login/signup*
+
+### Dashboard & Navigation
+![Dashboard Home](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.30.10.png)
+*Main dashboard with quick access to all features: paste notes, scan PDFs, record voice, and flashcards*
+
+### Note Management
+![Paste Note Interface](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.50.png)
+*Paste note feature with title and content input, ready for AI summarization*
+
+![Voice Recording](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.52.png)
+*Voice note recording interface with real-time transcription and audio visualization*
+
+### Flashcard System
+![Flashcard Generator](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.08.png)
+*AI-powered flashcard generation from notes or pasted text*
+
+![Flashcard Review](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.27.png)
+*Interactive flashcard review with flip-card UI for effective learning*
+
+### Summary & Notes View
+![Summaries List](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.37.07.png)
+*Organized view of all notes and their AI-generated summaries*
+
+---
+
 ## Getting Started
 
 ### 1. Clone the Repository
@@ -72,7 +105,7 @@ export GOOGLE_APPLICATION_CREDENTIALS=path/to/your/serviceAccountKey.json
 # Run the server (default port 8000)
 uvicorn main:app --reload --port 8000
 ```
-The backend will run on http://127.0.0.1:8000. (Depending on your localhost ip, it may vary)
+The backend will run on http://127.0.0.1:8000.
 
 ### 3. Frontend Setup (iOS)
 - Open `StudyAI_Frontend.AI/Study.AI/Study_AI.xcodeproj` in Xcode.
