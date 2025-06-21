@@ -56,32 +56,32 @@ StudyAI is an intelligent, modular iOS study assistant that helps students organ
 ## 📱 Demo Preview
 
 ### Authentication & Onboarding
-![Login Screen](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.10.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.10.png" width="200" alt="Login Screen">
 *Clean login interface with email/password authentication and Firebase integration*
 
-![Welcome Screen](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.37.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.29.37.png" width="200" alt="Welcome Screen">
 *Welcome screen with animated background and navigation to login/signup*
 
 ### Dashboard & Navigation
-![Dashboard Home](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.30.10.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.30.10.png" width="200" alt="Dashboard Home">
 *Main dashboard with quick access to all features: paste notes, scan PDFs, record voice, and flashcards*
 
 ### Note Management
-![Paste Note Interface](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.50.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.50.png" width="200" alt="Paste Note Interface">
 *Paste note feature with title and content input, ready for AI summarization*
 
-![Voice Recording](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.52.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.32.52.png" width="200" alt="Voice Recording">
 *Voice note recording interface with real-time transcription and audio visualization*
 
 ### Flashcard System
-![Flashcard Generator](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.08.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.08.png" width="200" alt="Flashcard Generator">
 *AI-powered flashcard generation from notes or pasted text*
 
-![Flashcard Review](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.27.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.33.27.png" width="200" alt="Flashcard Review">
 *Interactive flashcard review with flip-card UI for effective learning*
 
 ### Summary & Notes View
-![Summaries List](screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.37.07.png)
+<img src="screenshots/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20Max%20-%202025-06-20%20at%2022.37.07.png" width="200" alt="Summaries List">
 *Organized view of all notes and their AI-generated summaries*
 
 ---
